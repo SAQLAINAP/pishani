@@ -33,18 +33,20 @@ It works **fully offline** as a PWA or an Android APK, fits every screen from 32
 
 In tilt mode the countdown starts by itself once the phone is held upright on a forehead, or you can tap to start. If the device has no motion sensor (a desktop, say), the round falls back to swipe plus on-screen buttons. On a keyboard, ↓ or Space means correct and ↑ means pass.
 
-## Decks: 16 decks, 1,815 cards
+## Decks
 
-| Deck | Cards | Deck | Cards |
-|---|---|---|---|
-| Movies · Indian | 117 | Movies · International | 117 |
-| Actors · Indian | 121 | Actors · International | 116 |
-| Singers · Indian | 105 | Web Series & TV · Desi + Global | 110 |
-| Food · Indian | 113 | Food · International | 111 |
-| Brands · Indian | 103 | Brands · International | 115 |
-| Cities · World | 115 | Countries · World | 113 |
-| Landmarks · Famous Places | 112 | Sports Stars · Cricket + Global | 115 |
-| Animals · Wild + Home | 112 | Actions · Act It Out | 120 |
+| | |
+|---|---|
+| Movies · Indian | Movies · International |
+| Actors · Indian | Actors · International |
+| Singers · Indian | Web Series & TV · Desi + Global |
+| Food · Indian | Food · International |
+| Brands · Indian | Brands · International |
+| Cities · World | Countries · World |
+| Landmarks · Famous Places | Sports Stars · Cricket + Global |
+| Animals · Wild + Home | Actions · Act It Out |
+
+Each deck has a couple of hundred cards, most popular first. Countries is the exception: it has every UN member state plus Vatican City.
 
 **MIX** shuffles every deck into one pile. Each deck uses a shuffle bag, so you won't see a word again until you've gone through the whole deck, even across rounds.
 
@@ -56,6 +58,8 @@ The style mixes three things: raw civic-concrete architecture, the Swiss Interna
 - **Slabs.** Heavy blocks with 3px ink rules, **zero border radius**, and hard offset shadows with no blur. When you press a slab it drops into its own shadow.
 - **Swiss.** An exposed 12-column hairline grid, flush-left grotesk type (Archivo, with a variable width axis), monospace metadata (IBM Plex Mono), and index numbers like `02/17`. **Swiss red** is the only accent colour.
 - **Anti-design.** The MIX slab is knocked 0.6° off the grid, a hollow deck name falls off the ready screen, and a stamped "NEW BEST" appears on the results screen.
+- **Deck art.** Every slab has a geometric pictogram drawn like a civic-building poster: an art-deco cinema, a thali from above, a skyline under a red sun. The pictograms are inline SVG in the slab's own colours, and cut-outs let the concrete show through.
+- **Dark mode.** "Night concrete" uses dark slabs, pale rules and a grey cantilever shadow. Choose Auto, Light or Dark in settings, or use the toggle on the home screen. During a round the word always shows light on black.
 - **Feedback.** The whole screen floods signal green for correct, safety orange for pass and red at the end of the round. Each one comes with a synthesised beep and, on Android, a vibration.
 
 <p>
@@ -66,6 +70,10 @@ The style mixes three things: raw civic-concrete architecture, the Swiss Interna
   <img src="docs/screenshots/14-home-tablet.webp" width="360" alt="Tablet">
   <img src="docs/screenshots/13-home-320.webp" width="200" alt="320px phone">
   <img src="docs/screenshots/12-settings.webp" width="200" alt="Settings">
+</p>
+<p>
+  <img src="docs/screenshots/15-home-dark.webp" width="260" alt="Dark mode home">
+  <img src="docs/screenshots/17-play-dark.webp" width="420" alt="Dark mode round">
 </p>
 
 ## How it works

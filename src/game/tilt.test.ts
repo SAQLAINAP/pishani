@@ -53,18 +53,48 @@ describe('tilt detector', () => {
 
   it('calibrates to a forehead that leans back', () => {
     // Resting at +3 (screen tipped slightly up). Without calibration a small
-    // further look-up would fire; after calibration it takes a real tilt.
-    const leanBack = [...hold(3, 40), ...ramp(3, 8, 10), ...hold(8, 10)]
+    // further look-up (+3 more, ≈18°) would fire; after calibration it doesn't.
+    const leanBack = [...hold(3, 40), ...ramp(3, 6, 10), ...hold(6, 10)]
     expect(run(leanBack, 'med', 30)).toEqual([])
     expect(run([...hold(3, 40), ...ramp(3, -6, 10), ...hold(-6, 10)], 'med', 30)).toEqual(['correct'])
   })
 
-  it('fires within 2 samples (~33 ms at 60 Hz) of a sharp nod', () => {
+  it('fires within 3 samples (~50 ms at 60 Hz) of a sharp nod', () => {
     const det = createTiltDetector(tiltConfig('med'))
     for (let i = 0; i < 20; i++) det.push(0, i * 16)
-    const fired = [-9, -9, -9, -9].findIndex((z, i) => det.push(z, (20 + i) * 16))
+    const fired = [-9, -9, -9, -9, -9].findIndex((z, i) => det.push(z, (20 + i) * 16))
     expect(fired).toBeGreaterThanOrEqual(0)
-    expect(fired).toBeLessThanOrEqual(1)
+    expect(fired).toBeLessThanOrEqual(3)
+  })
+
+  it('ignores a one- or two-frame spike (the jerk at the start of a nod)', () => {
+    // +9 for two frames (would be a "pass"), then the real nod down.
+    expect(run([...hold(0, 20), 9, 9, ...ramp(0, -9, 6), ...hold(-9, 15)])).toEqual(['correct'])
+  })
+
+  it('looking up needs less angle than nodding down', () => {
+    const tilt = (z: number) => [...hold(0, 20), ...ramp(0, z, 6), ...hold(z, 15)]
+    // ≈30° either way: counts as a look-up, not as a nod.
+    expect(run(tilt(4.9))).toEqual(['pass'])
+    expect(run(tilt(-4.9))).toEqual([])
+  })
+
+  it('does not turn the rebound after a nod into a pass', () => {
+    // Nod down, come back, overshoot up past upright shortly after settling.
+    const rebound = [
+      ...hold(0, 20),
+      ...ramp(0, -9, 6),
+      ...hold(-9, 10),
+      ...ramp(-9, 0, 6),
+      ...hold(0, 12), // ~190 ms calm: re-armed…
+      ...ramp(0, 6, 4), // …then a quick swing up
+      ...hold(6, 4),
+      ...ramp(6, 0, 4),
+      ...hold(0, 30),
+    ]
+    expect(run(rebound)).toEqual(['correct'])
+    // A deliberate look-up a moment later still counts.
+    expect(run([...rebound, ...ramp(0, 7, 6), ...hold(7, 15)])).toEqual(['correct', 'pass'])
   })
 
   it('flips the iOS sign convention', () => {

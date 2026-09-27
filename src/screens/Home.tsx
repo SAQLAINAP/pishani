@@ -1,17 +1,30 @@
 import { useState } from 'react'
 import type { RoundSpec } from '../App'
 import { DECKS, MIX, type PlayableDeck } from '../data'
+import { exitApp, useBack } from '../lib/back'
+import { store } from '../store/storage'
 import { useSave } from '../store/useStore'
-import { GearIcon } from '../ui/Icons'
+import { DeckArt } from '../ui/DeckArt'
+import { GearIcon, ThemeIcon } from '../ui/Icons'
 import { SetupSheet } from './SetupSheet'
 
-const TOTAL = DECKS.length + 1
+// Index numbers stay as a Swiss grid device, but never as "02/17" or a card
+// count — totals make the content feel finite.
 const pad = (n: number) => String(n).padStart(2, '0')
-const CARD_COUNT = DECKS.reduce((n, d) => n + d.words.length, 0)
+
+function toggleTheme() {
+  const dark = document.documentElement.dataset.theme === 'dark'
+  store.updateSettings({ theme: dark ? 'light' : 'dark' })
+}
 
 export function Home({ onStart, onSettings }: { onStart: (s: RoundSpec) => void; onSettings: () => void }) {
   const save = useSave()
   const [picked, setPicked] = useState<{ deck: PlayableDeck; index: number } | null>(null)
+  const [leaving, setLeaving] = useState(false)
+
+  // Back on Home asks before quitting; back again (or Stay) dismisses the ask.
+  // An open setup sheet registers its own handler on top of this one.
+  useBack(() => setLeaving((v) => !v))
 
   return (
     <div className="screen">
@@ -22,12 +35,10 @@ export function Home({ onStart, onSettings }: { onStart: (s: RoundSpec) => void;
       </div>
       <main className="home" style={{ position: 'relative' }}>
         <header className="masthead">
-          <div className="masthead-top mono">
-            <div className="meta">
-              N° 01 — Forehead guessing game
-              <br />
-              v0.1 · Works offline
-            </div>
+          <div className="masthead-top">
+            <button className="slab icon-btn tone-paper" onClick={toggleTheme} aria-label="Toggle dark mode">
+              <ThemeIcon />
+            </button>
             <button className="slab icon-btn tone-paper" onClick={onSettings} aria-label="Settings">
               <GearIcon />
             </button>
@@ -41,9 +52,6 @@ export function Home({ onStart, onSettings }: { onStart: (s: RoundSpec) => void;
                 پیشانی
               </span>{' '}
               &nbsp;(n.) forehead
-            </span>
-            <span>
-              {DECKS.length} decks · {CARD_COUNT.toLocaleString('en-IN')} cards
             </span>
           </div>
         </header>
@@ -63,15 +71,40 @@ export function Home({ onStart, onSettings }: { onStart: (s: RoundSpec) => void;
         </footer>
       </main>
 
+      {leaving && <LeaveDialog onStay={() => setLeaving(false)} />}
+
       {picked && (
         <SetupSheet
           deck={picked.deck}
-          label={`${pad(picked.index)}/${pad(TOTAL)}`}
+          label={pad(picked.index)}
           onClose={() => setPicked(null)}
           onStart={onStart}
         />
       )}
     </div>
+  )
+}
+
+function LeaveDialog({ onStay }: { onStay: () => void }) {
+  return (
+    <>
+      <div className="scrim" onClick={onStay} />
+      <section className="dialog slab tone-paper" role="alertdialog" aria-modal="true" aria-labelledby="leave-title">
+        <span className="mono">One more round?</span>
+        <h2 id="leave-title" className="dialog-title">
+          Leave Pishani?
+        </h2>
+        <div className="dialog-actions">
+          {/* Staying is the primary action — it gets the red. */}
+          <button className="slab cta tone-red" onClick={onStay}>
+            Stay
+          </button>
+          <button className="slab cta tone-paper" onClick={exitApp}>
+            Leave
+          </button>
+        </div>
+      </section>
+    </>
   )
 }
 
@@ -91,20 +124,18 @@ function DeckSlab({
     <button
       className={`slab deck ${isMix ? 'mix tone-red' : `tone-${deck.tone}`}`}
       onClick={() => onPick({ deck, index })}
-      aria-label={`${deck.title} ${deck.tag}, ${deck.words.length} cards`}
+      aria-label={`${deck.title}, ${deck.tag}`}
     >
       {isMix ? (
         <>
-          <span className="deck-head mono" style={{ flexDirection: 'column', gap: 4 }}>
-            <span>
-              {pad(index)}/{pad(TOTAL)}
-            </span>
-            <span>{deck.words.length} cards</span>
+          <span className="deck-head mono" style={{ alignSelf: 'flex-start' }}>
+            {pad(index)}
           </span>
           <span className="mix-copy">
             <span className="deck-title">{deck.title}</span>
             <span className="deck-tag">{deck.blurb}</span>
           </span>
+          <DeckArt id={deck.id} />
           <span className="deck-foot mono" style={{ borderTop: 0, flexDirection: 'column', gap: 4 }}>
             <span>Best</span>
             <b>{best ?? '—'}</b>
@@ -112,12 +143,8 @@ function DeckSlab({
         </>
       ) : (
         <>
-          <span className="deck-head mono">
-            <span>
-              {pad(index)}/{pad(TOTAL)}
-            </span>
-            <span>{deck.words.length}</span>
-          </span>
+          <span className="deck-head mono">{pad(index)}</span>
+          <DeckArt id={deck.id} />
           <span>
             <span className="deck-title">{deck.title}</span>
             <span className="deck-tag">{deck.tag}</span>

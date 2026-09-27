@@ -18,3 +18,11 @@ export const CloseIcon = () => (
     <path d="M5 5l14 14M19 5L5 19" />
   </svg>
 )
+
+/** Half-filled square: light and dark as two slabs. */
+export const ThemeIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" {...stroke}>
+    <rect x="4" y="4" width="16" height="16" />
+    <path d="M12 4h8v16h-8z" fill="currentColor" stroke="none" />
+  </svg>
+)

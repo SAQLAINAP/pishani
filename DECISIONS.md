@@ -24,6 +24,22 @@ These are the forks in the road for v0. For each one: what we picked, why, and w
 - **Tested:** `src/game/tilt.test.ts` covers nods, held nods, wobble, jitter and sensitivity. An end-to-end run fed synthetic `devicemotion` events into headless Chrome.
 - **Can't test here:** how it *feels* on a real phone. That's what the sensitivity setting is for.
 
+### 2b. Tilt tuning after testing on a real phone (v0.1.1 → next)
+Your feedback was that looking up felt weaker than nodding down, and that some tilts were registered as passes when they shouldn't have been. The fixes:
+- **Pure gravity on the fallback path.** Android WebView probably doesn't expose `GravitySensor`, so most phones read `devicemotion`. That event also reports linear acceleration, from Android's fused linear-acceleration sensor. Subtracting it leaves just gravity, so the forward jerk at the start of a sharp nod no longer shows up as a spike in the pass direction.
+- **Hold for 30 ms.** A tilt has to stay past the threshold for about 3 samples. Jerk spikes last one or two. The cost is about 17 ms of extra latency.
+- **Looking up needs 75% of the nod angle.** Tipping your head back with a phone pressed to it is a smaller movement, and most Heads Up-style games make up easier than down.
+- **Rebound guard.** After a verdict, the opposite direction stays locked for 400 ms from the moment the head is back upright. That stops "nod down, swing back up past upright" from counting as a pass. It fits inside the 420 ms card flash, so it never blocks a real answer.
+
+### 2c. Back navigation
+- **One handler stack.** Whatever is on top handles a back press: the open sheet or dialog, otherwise the current screen.
+- **Sources:** Android's hardware back and back gesture arrive through `@capacitor/app`'s `backButton`. The browser uses a history sentinel that is re-armed after every press.
+- **Behaviour:**
+  - Settings and Results go back to Home.
+  - An open sheet closes.
+  - During a round, back works like Quit: the first press arms it and the second quits. That way a stray edge swipe can't throw a round away.
+  - On Home, back asks "Leave Pishani?", with Stay as the red primary. Back again, or Stay, dismisses it. Leave closes the app.
+
 ### 3. Tilt mode starts itself
 The countdown starts once the phone has been held upright for 0.9 s. Holding it naturally in your hand tips the screen back and doesn't trigger it. You can also tap to start.
 

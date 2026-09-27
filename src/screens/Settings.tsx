@@ -1,13 +1,20 @@
 import { useState } from 'react'
 import { deckById } from '../data'
 import type { Sensitivity } from '../game/tilt'
-import { store } from '../store/storage'
+import { useBack } from '../lib/back'
+import { store, type Theme } from '../store/storage'
 import { useSave } from '../store/useStore'
 
 const SENS: { v: Sensitivity; label: string }[] = [
   { v: 'low', label: 'Low' },
   { v: 'med', label: 'Med' },
   { v: 'high', label: 'High' },
+]
+
+const THEMES: { v: Theme; label: string }[] = [
+  { v: 'system', label: 'Auto' },
+  { v: 'light', label: 'Light' },
+  { v: 'dark', label: 'Dark' },
 ]
 
 function OnOff({ value, onChange, label }: { value: boolean; onChange: (v: boolean) => void; label: string }) {
@@ -26,6 +33,7 @@ function OnOff({ value, onChange, label }: { value: boolean; onChange: (v: boole
 export function Settings({ onBack }: { onBack: () => void }) {
   const { settings, history } = useSave()
   const [confirmReset, setConfirmReset] = useState(false)
+  useBack(onBack)
 
   return (
     <div className="screen">
@@ -35,6 +43,22 @@ export function Settings({ onBack }: { onBack: () => void }) {
         </button>
         <h1>Setup</h1>
 
+        <div className="row">
+          <span className="label">
+            Theme<small>Auto follows your phone</small>
+          </span>
+          <div className="seg" role="group" aria-label="Theme">
+            {THEMES.map((t) => (
+              <button
+                key={t.v}
+                aria-pressed={settings.theme === t.v}
+                onClick={() => store.updateSettings({ theme: t.v })}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="row">
           <span className="label">
             Sound<small>Beeps, ticks, the buzzer</small>

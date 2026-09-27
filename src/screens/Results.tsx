@@ -1,6 +1,7 @@
 import type { RoundSpec } from '../App'
 import { deckById } from '../data'
 import { score, type Answer } from '../game/round'
+import { useBack } from '../lib/back'
 
 export function Results({
   spec,
@@ -17,6 +18,7 @@ export function Results({
 }) {
   const deck = deckById(spec.deckId)!
   const got = score(answers)
+  useBack(onHome)
 
   return (
     <div className="screen">

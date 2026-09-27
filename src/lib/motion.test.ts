@@ -17,9 +17,13 @@ class FakeSensor extends EventTarget {
   stop() {}
 }
 
-function motion(z: number) {
-  const e = new Event('devicemotion') as Event & { accelerationIncludingGravity: { z: number } }
+function motion(z: number, linear?: number) {
+  const e = new Event('devicemotion') as Event & {
+    accelerationIncludingGravity: { z: number }
+    acceleration: { z: number } | null
+  }
   e.accelerationIncludingGravity = { z }
+  e.acceleration = linear === undefined ? null : { z: linear }
   window.dispatchEvent(e)
 }
 
@@ -66,6 +70,14 @@ describe('streamGravityZ', () => {
     vi.advanceTimersByTime(700)
     expect(src).toBe('devicemotion')
     stop()
+  })
+
+  it('subtracts linear acceleration so a jerk does not look like a tilt', () => {
+    const zs: number[] = []
+    const stop = streamGravityZ((z) => zs.push(z), () => {})
+    motion(7, 6.5) // raw spike of +7, of which +6.5 is the head moving
+    stop()
+    expect(zs[0]).toBeCloseTo(0.5)
   })
 
   it('uses devicemotion straight away where there is no GravitySensor (iOS)', () => {

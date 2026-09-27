@@ -10,7 +10,11 @@ describe('storage', () => {
   it('falls back to defaults on garbage or a foreign version', () => {
     expect(parse('{not json').settings).toEqual(DEFAULT_SETTINGS)
     expect(parse('{"v":7}').settings).toEqual(DEFAULT_SETTINGS)
-    expect(parse('{"v":0,"settings":{"seconds":999,"mode":"x"}}').settings).toEqual(DEFAULT_SETTINGS)
+    expect(parse('{"v":0,"settings":{"seconds":999,"mode":"x","theme":"neon"}}').settings).toEqual(
+      DEFAULT_SETTINGS,
+    )
+    // A v0.1.0 save has no theme field at all — it should pick up the default.
+    expect(parse('{"v":0,"settings":{"mode":"swipe"}}').settings.theme).toBe('system')
   })
 
   it('survives a restart', () => {

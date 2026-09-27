@@ -17,6 +17,23 @@
   --green: #0f7b3f;
   --orange: #f26a1b;
 
+  /* Semantic tokens — everything below uses these, so a theme is just a
+     remap. Light = poured concrete in daylight. */
+  --bg: var(--paper);
+  --fg: var(--ink);
+  --line: var(--ink); /* rules and slab borders */
+  --shadow: var(--ink); /* the cantilever */
+  --surf-paper: var(--paper);
+  --surf-concrete: var(--concrete);
+  --surf-stone: var(--stone);
+  --surf-ink: var(--ink);
+  --on-ink: var(--paper);
+  --word-bg: var(--ink);
+  --word-fg: var(--paper);
+  --grain-blend: multiply;
+  --grain-opacity: 0.22;
+  --grain-filter: none;
+
   --rule: 3px;
   --hair: 1px;
   --drop: 6px; /* cantilever shadow depth */
@@ -42,6 +59,27 @@
   );
 }
 
+/* Night concrete: the same slabs after dark. Pale rules and a mid-grey
+   cantilever keep the massing readable without turning shadows into glow;
+   the ink tone inverts to a pale slab so the 4-step rhythm survives. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #141412;
+  --fg: #ece8df;
+  --line: #d9d4c9;
+  --shadow: #5e5a52;
+  --surf-paper: #1e1d1b;
+  --surf-concrete: #2b2a27;
+  --surf-stone: #3d3a35;
+  --surf-ink: #d9d4c9;
+  --on-ink: #141412;
+  --word-bg: #000;
+  --word-fg: #ece8df;
+  --grain-blend: screen;
+  --grain-opacity: 0.1;
+  --grain-filter: invert(1);
+}
+
 *,
 *::before,
 *::after {
@@ -57,8 +95,8 @@ body,
 
 body {
   margin: 0;
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--bg);
+  color: var(--fg);
   font-family: var(--sans);
   font-stretch: 100%;
   -webkit-font-smoothing: antialiased;
@@ -74,8 +112,9 @@ body::after {
   position: fixed;
   inset: 0;
   background-image: var(--grain);
-  opacity: 0.22;
-  mix-blend-mode: multiply;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: var(--grain-blend);
+  filter: var(--grain-filter);
   pointer-events: none;
   z-index: 100;
 }
@@ -105,20 +144,20 @@ button {
 /* ────────────────────────── surfaces ────────────────────────── */
 
 .tone-paper {
-  background-color: var(--paper);
-  color: var(--ink);
+  background-color: var(--surf-paper);
+  color: var(--fg);
 }
 .tone-concrete {
-  background: var(--boards), var(--concrete);
-  color: var(--ink);
+  background: var(--boards), var(--surf-concrete);
+  color: var(--fg);
 }
 .tone-stone {
-  background: var(--boards), var(--stone);
-  color: var(--ink);
+  background: var(--boards), var(--surf-stone);
+  color: var(--fg);
 }
 .tone-ink {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--surf-ink);
+  color: var(--on-ink);
 }
 .tone-red {
   background: var(--red);
@@ -128,8 +167,8 @@ button {
 /* The slab: a poured block with a hard, cantilevered shadow. */
 .slab {
   position: relative;
-  border: var(--rule) solid var(--ink);
-  box-shadow: var(--drop) var(--drop) 0 var(--ink);
+  border: var(--rule) solid var(--line);
+  box-shadow: var(--drop) var(--drop) 0 var(--shadow);
   transition:
     transform 90ms ease-out,
     box-shadow 90ms ease-out;
@@ -137,7 +176,7 @@ button {
 button.slab:active,
 .slab.pressed {
   transform: translate(var(--drop), var(--drop));
-  box-shadow: 0 0 0 var(--ink);
+  box-shadow: 0 0 0 var(--shadow);
 }
 
 /* ────────────────────────── app shell ────────────────────────── */
@@ -159,10 +198,10 @@ button.slab:active,
   z-index: 0;
 }
 .grid-lines span {
-  border-left: var(--hair) solid rgb(28 28 26 / 0.07);
+  border-left: var(--hair) solid color-mix(in srgb, var(--fg) 7%, transparent);
 }
 .grid-lines span:last-child {
-  border-right: var(--hair) solid rgb(28 28 26 / 0.07);
+  border-right: var(--hair) solid color-mix(in srgb, var(--fg) 7%, transparent);
 }
 
 /* ────────────────────────── home ────────────────────────── */
@@ -175,7 +214,7 @@ button.slab:active,
 
 .masthead {
   position: relative;
-  border-bottom: var(--rule) solid var(--ink);
+  border-bottom: var(--rule) solid var(--line);
   padding-bottom: 10px;
   margin-bottom: clamp(18px, 4vw, 32px);
   overflow: hidden;
@@ -183,7 +222,9 @@ button.slab:active,
 }
 .masthead-top {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
+  gap: calc(var(--drop) + 8px);
+  padding-right: 4px;
   align-items: flex-start;
   gap: 12px;
   font-size: clamp(10px, 2.6vw, 13px);
@@ -249,7 +290,7 @@ button.slab:active,
 .section-label::after {
   content: '';
   flex: 1;
-  border-top: var(--hair) solid var(--ink);
+  border-top: var(--hair) solid var(--line);
 }
 
 .decks {
@@ -266,10 +307,32 @@ button.slab:active,
   flex-direction: column;
   justify-content: space-between;
   text-align: left;
-  aspect-ratio: 1 / 1.08;
   padding: 10px 12px 12px;
   overflow: hidden;
-  min-height: 140px;
+  gap: 8px;
+  --art-accent: var(--red);
+}
+.deck-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 120 / 72;
+  margin: 2px 0 4px;
+  /* A 30% hard offset — the pictogram casts the same no-blur shadow as its slab. */
+  filter: drop-shadow(3px 3px 0 color-mix(in srgb, currentColor 30%, transparent));
+}
+.deck.tone-red {
+  --art-accent: #fff;
+}
+.deck.mix .deck-art {
+  width: clamp(84px, 24cqi, 200px);
+  flex: none;
+  margin: 0;
+}
+@container (max-width: 290px) {
+  .deck.mix .deck-art {
+    display: none;
+  }
 }
 .deck-head {
   display: flex;
@@ -340,7 +403,7 @@ button.slab:active,
   font-size: 11px;
   margin-top: clamp(22px, 5vw, 40px);
   padding-top: 10px;
-  border-top: var(--rule) solid var(--ink);
+  border-top: var(--rule) solid var(--line);
 }
 
 /* ────────────────────────── bottom sheet (setup) ────────────────────────── */
@@ -360,7 +423,7 @@ button.slab:active,
   z-index: 21;
   max-height: 92dvh;
   overflow-y: auto;
-  border-top: calc(var(--rule) * 2) solid var(--ink);
+  border-top: calc(var(--rule) * 2) solid var(--line);
   padding: 18px calc(var(--safe-r) + var(--gutter)) calc(var(--safe-b) + 22px)
     calc(var(--safe-l) + var(--gutter));
   animation: rise 200ms cubic-bezier(0.2, 0.9, 0.2, 1);
@@ -373,8 +436,8 @@ button.slab:active,
     top: 50%;
     width: min(620px, 92vw);
     transform: translate(-50%, -50%);
-    border: var(--rule) solid var(--ink);
-    box-shadow: 12px 12px 0 var(--ink);
+    border: var(--rule) solid var(--line);
+    box-shadow: 12px 12px 0 var(--shadow);
     animation: fade 160ms ease-out;
   }
 }
@@ -411,7 +474,7 @@ button.slab:active,
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
-  border: var(--rule) solid var(--ink);
+  border: var(--rule) solid var(--line);
 }
 .seg button {
   min-height: 52px;
@@ -428,7 +491,7 @@ button.slab:active,
   gap: 2px;
 }
 .seg button + button {
-  border-left: var(--rule) solid var(--ink);
+  border-left: var(--rule) solid var(--line);
 }
 .seg button small {
   font-family: var(--mono);
@@ -438,8 +501,8 @@ button.slab:active,
   opacity: 0.75;
 }
 .seg button[aria-pressed='true'] {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--fg);
+  color: var(--bg);
 }
 
 .cta {
@@ -470,6 +533,46 @@ button.slab:active,
   .cta-row.two {
     grid-template-columns: 2fr 1fr;
   }
+}
+
+/* ────────────────────────── leave dialog ────────────────────────── */
+
+.dialog {
+  position: fixed;
+  z-index: 21;
+  left: 50%;
+  top: 50%;
+  width: min(520px, calc(100vw - 2 * var(--gutter) - 12px));
+  transform: translate(-50%, -50%);
+  padding: 18px 18px 22px;
+  --drop: 12px;
+  animation: fade 140ms ease-out;
+}
+button.slab.dialog:active {
+  transform: translate(-50%, -50%);
+}
+.dialog > .mono {
+  font-size: 11px;
+}
+.dialog-title {
+  font-weight: 900;
+  font-stretch: 115%;
+  text-transform: uppercase;
+  letter-spacing: -0.035em;
+  line-height: 0.85;
+  font-size: clamp(38px, 11vw, 64px);
+  margin: 8px 0 20px;
+}
+.dialog-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(6px + 10px);
+  padding-right: 6px;
+  padding-bottom: 6px;
+}
+.dialog-actions .cta {
+  min-height: 56px;
+  font-size: clamp(18px, 5vw, 24px);
 }
 
 /* ────────────────────────── ready / countdown ────────────────────────── */
@@ -536,7 +639,7 @@ button.slab:active,
   line-height: 0.8;
   font-size: clamp(90px, 38vmin, 420px);
   color: transparent;
-  -webkit-text-stroke: 2px rgb(28 28 26 / 0.28);
+  -webkit-text-stroke: 2px color-mix(in srgb, var(--fg) 28%, transparent);
   white-space: nowrap;
   pointer-events: none;
   z-index: 0;
@@ -581,6 +684,10 @@ button.slab:active,
   line-height: 1;
 }
 .word-slab {
+  /* Its own tokens, not tone-ink: in dark mode the word stays light-on-black
+     for friends reading from across the room. */
+  background: var(--word-bg);
+  color: var(--word-fg);
   flex: 1;
   min-height: 0;
   margin: clamp(10px, 3vmin, 24px) var(--drop) var(--drop) 0;
@@ -699,7 +806,7 @@ button.slab:active,
   grid-template-columns: auto 1fr;
   align-items: end;
   gap: 4px 18px;
-  border-bottom: var(--rule) solid var(--ink);
+  border-bottom: var(--rule) solid var(--line);
   padding-bottom: 12px;
   margin-bottom: 18px;
 }
@@ -729,7 +836,7 @@ button.slab:active,
   text-transform: uppercase;
   font-size: clamp(16px, 4.6vw, 26px);
   transform: rotate(-7deg);
-  background: var(--paper);
+  background: var(--bg);
   animation: stamp 420ms cubic-bezier(0.2, 1.6, 0.4, 1) both 250ms;
 }
 .word-list {
@@ -746,7 +853,7 @@ button.slab:active,
   gap: 8px;
   min-height: 44px;
   padding: 6px 4px;
-  border-bottom: var(--hair) solid var(--ink);
+  border-bottom: var(--hair) solid var(--line);
   font-weight: 700;
   font-size: 17px;
   line-height: 1.15;
@@ -757,7 +864,7 @@ button.slab:active,
   opacity: 0.55;
 }
 .word-list li.pass {
-  color: var(--ink-2);
+  color: var(--fg);
   text-decoration: line-through;
   text-decoration-thickness: 2px;
   opacity: 0.55;
@@ -793,10 +900,10 @@ button.slab:active,
   align-items: center;
   gap: 16px;
   padding: 14px 0;
-  border-top: var(--hair) solid var(--ink);
+  border-top: var(--hair) solid var(--line);
 }
 .row:last-of-type {
-  border-bottom: var(--hair) solid var(--ink);
+  border-bottom: var(--hair) solid var(--line);
 }
 .row .label {
   font-weight: 800;
@@ -831,7 +938,7 @@ button.slab:active,
 }
 .history td {
   padding: 8px 4px;
-  border-bottom: var(--hair) solid var(--ink);
+  border-bottom: var(--hair) solid var(--line);
 }
 .history td:last-child {
   text-align: right;

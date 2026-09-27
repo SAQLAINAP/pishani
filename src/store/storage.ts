@@ -6,6 +6,7 @@ import type { Sensitivity, Verdict } from '../game/tilt'
  * No database — there is nothing here that needs one.
  */
 export type Mode = 'tilt' | 'swipe'
+export type Theme = 'system' | 'light' | 'dark'
 
 export interface Settings {
   sound: boolean
@@ -13,6 +14,7 @@ export interface Settings {
   sensitivity: Sensitivity
   mode: Mode
   seconds: number
+  theme: Theme
 }
 
 export interface RoundRecord {
@@ -43,6 +45,7 @@ export const DEFAULT_SETTINGS: Settings = {
   sensitivity: 'med',
   mode: 'tilt',
   seconds: 60,
+  theme: 'system',
 }
 
 export function freshData(): SaveData {
@@ -58,6 +61,7 @@ export function parse(raw: string | null): SaveData {
     const s = { ...DEFAULT_SETTINGS, ...(d.settings ?? {}) }
     if (!['low', 'med', 'high'].includes(s.sensitivity)) s.sensitivity = 'med'
     if (s.mode !== 'tilt' && s.mode !== 'swipe') s.mode = 'tilt'
+    if (!['system', 'light', 'dark'].includes(s.theme)) s.theme = 'system'
     if (!DURATIONS.includes(s.seconds as (typeof DURATIONS)[number])) s.seconds = 60
     return {
       v: 0,

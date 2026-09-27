@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import type { RoundSpec } from '../App'
 import type { PlayableDeck } from '../data'
+import { useBack } from '../lib/back'
 import { requestMotion } from '../lib/platform'
 import { DURATIONS, store, type Mode } from '../store/storage'
 import { useSave } from '../store/useStore'
@@ -18,6 +19,7 @@ export function SetupSheet({
   onStart: (s: RoundSpec) => void
 }) {
   const { settings, best } = useSave()
+  useBack(onClose)
 
   useEffect(() => {
     const onEsc = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -42,9 +44,9 @@ export function SetupSheet({
       <section className="sheet tone-paper" role="dialog" aria-modal="true" aria-label={`${deck.title} setup`}>
         <div className="sheet-head">
           <span className="mono" style={{ fontSize: 11, lineHeight: 1.6 }}>
-            Deck {label} · {deck.words.length} cards
+            Deck {label} · {deck.tag}
             <br />
-            {deck.tag} · Best {best[deck.id] ?? '—'}
+            Best {best[deck.id] ?? '—'}
           </span>
           <button className="slab icon-btn tone-paper" onClick={onClose} aria-label="Close">
             <CloseIcon />

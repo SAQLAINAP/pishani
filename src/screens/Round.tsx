@@ -6,6 +6,7 @@ import { buildQueue } from '../game/shuffle'
 import { classifySwipe } from '../game/swipe'
 import { createTiltDetector, tiltConfig, type Verdict } from '../game/tilt'
 import { buzz } from '../lib/haptics'
+import { useBack } from '../lib/back'
 import { streamGravityZ } from '../lib/motion'
 import { unlockOrientation } from '../lib/platform'
 import { sfx } from '../lib/sound'
@@ -221,6 +222,10 @@ export function Round({
     later(() => setQuitArmed(false), 2200)
   }
 
+  // Back mid-round behaves like the Quit button: first press arms, second quits,
+  // so a stray swipe from the screen edge never throws a round away.
+  useBack(quit)
+
   const quitButton = (
     <button
       className={`slab back ${quitArmed ? 'tone-red' : 'tone-paper'} mono`}
@@ -233,7 +238,7 @@ export function Round({
       aria-label="Quit round"
     >
       <CloseIcon />
-      {quitArmed ? 'Tap again to quit' : 'Quit'}
+      {quitArmed ? 'Again to quit' : 'Quit'}
     </button>
   )
 
@@ -318,7 +323,7 @@ export function Round({
         </span>
       </div>
 
-      <div className="slab word-slab tone-ink">
+      <div className="slab word-slab">
         <span className="word-index mono">
           {String(round.index + 1).padStart(2, '0')} · {deck.title}
         </span>
@@ -335,7 +340,7 @@ export function Round({
         <div className="manual">
           <button
             className="slab"
-            style={{ background: 'var(--orange)' }}
+            style={{ background: 'var(--orange)', color: 'var(--ink)' }}
             onPointerDown={(e) => e.stopPropagation()}
             onClick={() => decide('pass')}
           >

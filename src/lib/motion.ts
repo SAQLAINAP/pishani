@@ -10,7 +10,10 @@ import { isIOS } from './platform'
  * tracks the *rotation* of a nod directly. The fallback, `devicemotion`'s
  * accelerationIncludingGravity, is the raw accelerometer: the head's own
  * forward jerk at the start of a nod briefly pushes z the wrong way before
- * gravity wins, which reads as lag. iOS only has the fallback.
+ * gravity wins, which reads as lag — and a sharp nod's spike can even read
+ * as the opposite tilt. The fallback subtracts the reported linear
+ * acceleration when there is one, which removes that. iOS only has the
+ * fallback.
  */
 export type Source = 'gravity' | 'devicemotion'
 
@@ -27,8 +30,13 @@ export function streamGravityZ(onZ: (z: number, at: number) => void, onSource: (
   let fallbackOn = false
 
   const onMotion = (e: DeviceMotionEvent) => {
-    const z = e.accelerationIncludingGravity?.z
-    if (z == null) return
+    const withG = e.accelerationIncludingGravity?.z
+    if (withG == null) return
+    // Where the platform also reports linear acceleration (Android's fused
+    // TYPE_LINEAR_ACCELERATION, iOS userAcceleration), subtracting it leaves
+    // pure gravity — the same signal GravitySensor gives, minus the jerk.
+    const linear = e.acceleration?.z
+    const z = linear == null ? withG : withG - linear
     onZ(normaliseZ(z, isIOS), e.timeStamp || performance.now())
   }
 

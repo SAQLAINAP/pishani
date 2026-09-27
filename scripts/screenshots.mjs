@@ -35,12 +35,18 @@ const SEED = {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
-async function open(browser, viewport) {
+async function open(browser, viewport, theme = 'light') {
   const page = await browser.newPage()
   await page.setViewport(viewport)
+  const seed = { ...SEED, settings: { ...SEED.settings, theme } }
+  // Every page in one browser shares localStorage, so always overwrite — a
+  // page must not inherit the previous page's theme or scores.
   await page.evaluateOnNewDocument((seed) => {
-    if (!localStorage.getItem('pishani:v0')) localStorage.setItem('pishani:v0', JSON.stringify(seed))
-  }, SEED)
+    if (!sessionStorage.getItem('seeded')) {
+      localStorage.setItem('pishani:v0', JSON.stringify(seed))
+      sessionStorage.setItem('seeded', '1')
+    }
+  }, seed)
   await page.goto(BASE, { waitUntil: 'networkidle0' })
   await page.evaluate(() => document.fonts.ready)
   return page
@@ -118,6 +124,23 @@ try {
 
   page = await open(browser, TABLET)
   await shot(page, '14-home-tablet')
+  await page.close()
+
+  // Dark mode: home, setup, and a round in landscape.
+  page = await open(browser, PHONE, 'dark')
+  await shot(page, '15-home-dark')
+  await clickText(page, 'button.deck', 'Cities')
+  await sleep(350)
+  await shot(page, '16-setup-dark')
+  await page.close()
+  page = await open(browser, LAND, 'dark')
+  await clickText(page, 'button.deck', 'Animals')
+  await sleep(300)
+  await clickText(page, 'button.cta', 'Start')
+  await sleep(300)
+  await page.keyboard.press('Enter')
+  await sleep(3400)
+  await shot(page, '17-play-dark')
   await page.close()
 } finally {
   await browser.close()
