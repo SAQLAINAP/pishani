@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Concrete ground -->
+  <rect width="512" height="512" fill="#d4d0c8"/>
+  <g fill="#1c1c1a" opacity=".06">
+    <rect y="120" width="512" height="3"/><rect y="240" width="512" height="3"/><rect y="360" width="512" height="3"/>
+  </g>
+  <!-- Cantilever shadow + slab -->
+  <rect x="120" y="112" width="300" height="316" fill="#1c1c1a"/>
+  <rect x="96" y="88" width="300" height="316" fill="#efece6" stroke="#1c1c1a" stroke-width="16"/>
+  <!-- Red forehead band -->
+  <rect x="104" y="96" width="284" height="56" fill="#e3120b"/>
+  <!-- Block P, built from rectangles: stem + square bowl -->
+  <g fill="#1c1c1a">
+    <rect x="164" y="186" width="52" height="182"/>
+    <rect x="164" y="186" width="160" height="44"/>
+    <rect x="280" y="186" width="44" height="116"/>
+    <rect x="164" y="258" width="160" height="44"/>
+  </g>
+</svg>

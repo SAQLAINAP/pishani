@@ -1,0 +1,63 @@
+name: GitHub Pages
+
+# Deploys the built PWA to GitHub Pages on every push to main. Because the app
+# uses `base: './'` (see vite.config.ts), it runs unchanged from
+# the /pishani/ subpath the Pages URL lives at. vite-plugin-pwa's
+# workbox precache means first load online, every load after offline.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# One in-flight deploy at a time — cancel older runs so a fast follow-up
+# push doesn't wait behind a stale build.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      # GitHub Pages defaults to Jekyll, which silently drops any file or
+      # folder starting with an underscore. Vite doesn't emit underscore
+      # names today, but this is a one-byte insurance policy.
+      - name: Disable Jekyll
+        run: touch dist/.nojekyll
+
+      # Pages is enabled once out-of-band (Settings → Pages → Source: GitHub
+      # Actions, or `gh api -X POST repos/.../pages -f build_type=workflow`).
+      # The default GITHUB_TOKEN can't *create* the Pages site itself.
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
