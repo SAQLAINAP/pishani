@@ -7,7 +7,7 @@ import { classifySwipe } from '../game/swipe'
 import { createTiltDetector, tiltConfig, type Verdict } from '../game/tilt'
 import { buzz } from '../lib/haptics'
 import { useBack } from '../lib/back'
-import { streamGravityZ } from '../lib/motion'
+import { streamPitch } from '../lib/motion'
 import { unlockOrientation } from '../lib/platform'
 import { sfx } from '../lib/sound'
 import { holdScreenOn, releaseScreen } from '../lib/wakelock'
@@ -22,7 +22,7 @@ type Sensor = 'waiting' | 'live' | 'missing'
 // also needs the head back upright, so this only has to cover the read.
 const FLASH_MS = 420
 const TIMEUP_MS = 1500
-const UPRIGHT = 2.5 // |z| below this (≈15°) counts as "on the forehead"
+const UPRIGHT = 15 // within ±15° of vertical counts as "on the forehead"
 const UPRIGHT_HOLD_MS = 900
 
 export function Round({
@@ -136,7 +136,7 @@ export function Round({
     }
   }, [])
 
-  // Tilt: gravity z (fused sensor, or raw accelerometer fallback) → detector → verdict. Also auto-starts the countdown
+  // Tilt: screen pitch from gravity (fused sensor, or accelerometer fallback) → detector → verdict. Also auto-starts the countdown
   // once the phone has been held upright (on a forehead) for a moment.
   useEffect(() => {
     if (spec.mode !== 'tilt') return
@@ -144,13 +144,13 @@ export function Round({
     let uprightSince: number | null = null
     const missing = window.setTimeout(() => !got && setSensor('missing'), 1800)
 
-    const stop = streamGravityZ(
-      (z, now) => {
+    const stop = streamPitch(
+      (deg, now) => {
         if (!got) {
           got = true
           setSensor('live')
         }
-        const v = detector.current.push(z, now)
+        const v = detector.current.push(deg, now)
         const p = live.current.phase
         if (p === 'ready') {
           if (Math.abs(detector.current.level) < UPRIGHT) {

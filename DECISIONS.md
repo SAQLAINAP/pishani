@@ -40,6 +40,14 @@ Your feedback was that looking up felt weaker than nodding down, and that some t
   - During a round, back works like Quit: the first press arms it and the second quits. That way a stray edge swipe can't throw a round away.
   - On Home, back asks "Leave Pishani?", with Stay as the red primary. Back again, or Stay, dismisses it. Leave closes the app.
 
+### 2d. Measure the tilt angle, not the z component (the look-up fix)
+- **The bug:** the detector compared raw z (m/s²) against thresholds. But z = g·sin θ, so each extra degree adds less z the further the phone already is from upright. Foreheads rest leaning back about 10–15°.
+- **Worked example:** from a +12° rest, a 25° look-up changes z by only 9.81·(sin 37° − sin 12°) ≈ 3.9. A 38° nod down changes it by about 6.4. The same head movement registered much weaker upward, which is why making look-up 75% easier in v0.2.0 barely helped.
+- **The fix:** convert gravity to the screen's pitch in degrees, `atan2(z, hypot(x, y))`, and set every threshold in degrees past the player's own resting angle.
+- **New Medium values:** a nod down needs 35° and a look-up needs 26°. Low and High are 45°/34° and 25°/19°.
+- **Rebound lock:** shortened to 250 ms, so a quick real look-up straight after a correct isn't swallowed.
+- **Regression test:** `tilt.test.ts` covers a look-up from a leaned-back rest.
+
 ### 3. Tilt mode starts itself
 The countdown starts once the phone has been held upright for 0.9 s. Holding it naturally in your hand tips the screen back and doesn't trigger it. You can also tap to start.
 

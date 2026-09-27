@@ -5,11 +5,16 @@
  * upright on a forehead sits at beta ≈ 90°, which is exactly where Euler
  * angles hit gimbal lock and jitter. The gravity vector has no singularity.
  *
- * We only read the z axis (the one pointing out of the screen). Upright, z ≈ 0.
- * Nodding forward turns the screen toward the floor, tilting back turns it
- * toward the ceiling, and z swings hard one way or the other. Because x and y
- * are ignored, it doesn't matter which way round the phone is in landscape,
- * or whether it is in portrait at all.
+ * From gravity we take ONE number: the screen's pitch — how far the screen
+ * faces the floor (negative) or the ceiling (positive), in degrees. Upright is
+ * 0°. Because it's measured against the whole vector, it doesn't matter which
+ * way round the phone is in landscape, or whether it is in portrait at all.
+ *
+ * Why degrees and not the raw z component (v0.1–v0.2 used z): z = g·sin θ,
+ * so each extra degree adds less z the further you already are from upright.
+ * Foreheads rest leaning back ~10–15°, so a look-up started from there
+ * registered far weaker than the same-sized nod down — the "tilt up feels
+ * bad" bug. Thresholds in degrees are symmetric wherever you start.
  *
  * This file is pure — no DOM — so the state machine is unit-tested with
  * synthetic sample streams (tilt.test.ts).
@@ -19,7 +24,7 @@ export type Verdict = 'correct' | 'pass'
 export type Sensitivity = 'low' | 'med' | 'high'
 
 export interface TiltConfig {
-  /** |z − baseline| (m/s²) for a nod down. 9.81 would be a full 90°. */
+  /** Degrees past the resting angle for a nod down. */
   fire: number
   /**
    * Fraction of `fire` needed to look UP. Tipping your head back with a phone
@@ -29,24 +34,23 @@ export interface TiltConfig {
   /** The tilt must be held past the threshold this long (ms). Spikes from the
    *  head's own jerk last a frame or two; a real tilt doesn't. */
   holdMs: number
-  /** |z − baseline| must fall below this before the next tilt can fire. */
+  /** Within this many degrees of rest counts as "back upright". */
   rearm: number
-  /** …and stay below it this long (ms). Stops one wobbly nod counting twice. */
+  /** …and must stay there this long (ms). Stops one wobbly nod counting twice. */
   settleMs: number
   /**
    * After a verdict, the OPPOSITE direction stays locked this long from the
    * moment the head is back upright. Kills the rebound: nod down, swing back
-   * up past upright → a false "pass". Shorter than the card flash, so it
-   * never blocks a real answer.
+   * up past upright → a false "pass". Short enough that a real look-up right
+   * after a correct isn't swallowed.
    */
   oppositeLockMs: number
   /** EMA weight of the newest sample, 0–1. Lower = smoother but laggier. */
   smoothing: number
 }
 
-// fire ≈ asin(fire / 9.81): low ≈ 50°, med ≈ 38°, high ≈ 27° down;
-// up is 75% of that (≈ 35° / 27° / 20°).
-const FIRE: Record<Sensitivity, number> = { low: 7.5, med: 6, high: 4.5 }
+// Degrees past rest. Up = 75% of down: low 45°/34°, med 35°/26°, high 25°/19°.
+const FIRE: Record<Sensitivity, number> = { low: 45, med: 35, high: 25 }
 
 export function tiltConfig(sensitivity: Sensitivity): TiltConfig {
   // smoothing 0.6 ≈ one sample of lag at 60 Hz; jitter is handled by the
@@ -55,9 +59,9 @@ export function tiltConfig(sensitivity: Sensitivity): TiltConfig {
     fire: FIRE[sensitivity],
     upScale: 0.75,
     holdMs: 30,
-    rearm: 3,
+    rearm: 15,
     settleMs: 150,
-    oppositeLockMs: 400,
+    oppositeLockMs: 250,
     smoothing: 0.6,
   }
 }
@@ -65,9 +69,9 @@ export function tiltConfig(sensitivity: Sensitivity): TiltConfig {
 export interface TiltDetector {
   /** Treat the current smoothed reading as "upright" (foreheads lean back a bit). */
   calibrate(): void
-  /** Feed one z sample (already sign-normalised: negative = screen toward floor). */
-  push(z: number, at: number): Verdict | null
-  /** Smoothed z, for the "hold it upright" check on the ready screen. */
+  /** Feed one pitch sample in degrees (negative = screen toward the floor). */
+  push(pitch: number, at: number): Verdict | null
+  /** Smoothed pitch, for the "hold it upright" check on the ready screen. */
   readonly level: number
 }
 
@@ -92,8 +96,8 @@ export function createTiltDetector(cfg: TiltConfig): TiltDetector {
     get level() {
       return ema ?? 0
     },
-    push(z, at) {
-      ema = ema === null ? z : ema + cfg.smoothing * (z - ema)
+    push(pitch, at) {
+      ema = ema === null ? pitch : ema + cfg.smoothing * (pitch - ema)
       const d = ema - baseline
 
       if (!armed) {
@@ -139,4 +143,12 @@ export function createTiltDetector(cfg: TiltConfig): TiltDetector {
  */
 export function normaliseZ(rawZ: number, isIOS: boolean): number {
   return isIOS ? -rawZ : rawZ
+}
+
+/**
+ * Screen pitch in degrees from a gravity vector: 0 upright, −90 screen facing
+ * the floor, +90 facing the ceiling. `z` must already be sign-normalised.
+ */
+export function pitchDeg(x: number, y: number, z: number): number {
+  return (Math.atan2(z, Math.hypot(x, y)) * 180) / Math.PI
 }

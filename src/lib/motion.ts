@@ -1,9 +1,9 @@
-import { normaliseZ } from '../game/tilt'
+import { normaliseZ, pitchDeg } from '../game/tilt'
 import { isIOS } from './platform'
 
 /**
- * Streams the screen-normal (z) component of gravity, sign-normalised so
- * negative = screen toward the floor.
+ * Streams the screen's pitch in degrees, from gravity: negative = screen
+ * toward the floor, positive = toward the ceiling (see pitchDeg).
  *
  * Preferred source: the Generic Sensor `GravitySensor` (Chrome / Android
  * WebView). It is Android's fused gravity — accelerometer + gyroscope — so it
@@ -18,26 +18,30 @@ import { isIOS } from './platform'
 export type Source = 'gravity' | 'devicemotion'
 
 interface GravitySensorLike extends EventTarget {
+  x: number | null
+  y: number | null
   z: number | null
   start(): void
   stop(): void
 }
 type GravitySensorCtor = new (opts: { frequency: number }) => GravitySensorLike
 
-export function streamGravityZ(onZ: (z: number, at: number) => void, onSource: (s: Source) => void) {
+export function streamPitch(onPitch: (deg: number, at: number) => void, onSource: (s: Source) => void) {
   let stopped = false
   let sensor: GravitySensorLike | null = null
   let fallbackOn = false
 
   const onMotion = (e: DeviceMotionEvent) => {
-    const withG = e.accelerationIncludingGravity?.z
-    if (withG == null) return
+    const g = e.accelerationIncludingGravity
+    if (g?.x == null || g.y == null || g.z == null) return
     // Where the platform also reports linear acceleration (Android's fused
     // TYPE_LINEAR_ACCELERATION, iOS userAcceleration), subtracting it leaves
     // pure gravity — the same signal GravitySensor gives, minus the jerk.
-    const linear = e.acceleration?.z
-    const z = linear == null ? withG : withG - linear
-    onZ(normaliseZ(z, isIOS), e.timeStamp || performance.now())
+    const l = e.acceleration
+    const x = g.x - (l?.x ?? 0)
+    const y = g.y - (l?.y ?? 0)
+    const z = g.z - (l?.z ?? 0)
+    onPitch(pitchDeg(x, y, normaliseZ(z, isIOS)), e.timeStamp || performance.now())
   }
 
   function fallback() {
@@ -58,13 +62,13 @@ export function streamGravityZ(onZ: (z: number, at: number) => void, onSource: (
       sensor = s
       let got = false
       s.addEventListener('reading', () => {
-        if (s.z == null) return
+        if (s.x == null || s.y == null || s.z == null) return
         if (!got) {
           got = true
           onSource('gravity')
         }
         // Same sign convention as Android devicemotion (flat, face up = +9.81).
-        onZ(s.z, performance.now())
+        onPitch(pitchDeg(s.x, s.y, s.z), performance.now())
       })
       // Blocked by permissions policy, no sensor, etc. → raw accelerometer.
       s.addEventListener('error', fallback)
