@@ -33,7 +33,9 @@ export interface TiltConfig {
 const FIRE: Record<Sensitivity, number> = { low: 7.5, med: 6, high: 4.5 }
 
 export function tiltConfig(sensitivity: Sensitivity): TiltConfig {
-  return { fire: FIRE[sensitivity], rearm: 3, settleMs: 250, smoothing: 0.35 }
+  // smoothing 0.6 ≈ one sample of lag at 60 Hz: enough to kill single-sample
+  // spikes, while jitter protection comes from fire/rearm hysteresis instead.
+  return { fire: FIRE[sensitivity], rearm: 3, settleMs: 150, smoothing: 0.6 }
 }
 
 export interface TiltDetector {

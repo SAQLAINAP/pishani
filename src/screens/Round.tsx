@@ -4,9 +4,10 @@ import { deckById } from '../data'
 import { answer, currentWord, score, startRound, type Answer, type RoundState } from '../game/round'
 import { buildQueue } from '../game/shuffle'
 import { classifySwipe } from '../game/swipe'
-import { createTiltDetector, normaliseZ, tiltConfig, type Verdict } from '../game/tilt'
+import { createTiltDetector, tiltConfig, type Verdict } from '../game/tilt'
 import { buzz } from '../lib/haptics'
-import { isIOS, unlockOrientation } from '../lib/platform'
+import { streamGravityZ } from '../lib/motion'
+import { unlockOrientation } from '../lib/platform'
 import { sfx } from '../lib/sound'
 import { holdScreenOn, releaseScreen } from '../lib/wakelock'
 import { store } from '../store/storage'
@@ -16,7 +17,9 @@ import { CloseIcon } from '../ui/Icons'
 type Phase = 'ready' | 'countdown' | 'play' | 'timeup'
 type Sensor = 'waiting' | 'live' | 'missing'
 
-const FLASH_MS = 600
+// How long the green/orange flood holds before the next card. The detector
+// also needs the head back upright, so this only has to cover the read.
+const FLASH_MS = 420
 const TIMEUP_MS = 1500
 const UPRIGHT = 2.5 // |z| below this (≈15°) counts as "on the forehead"
 const UPRIGHT_HOLD_MS = 900
@@ -132,7 +135,7 @@ export function Round({
     }
   }, [])
 
-  // Tilt: motion sensor → detector → verdict. Also auto-starts the countdown
+  // Tilt: gravity z (fused sensor, or raw accelerometer fallback) → detector → verdict. Also auto-starts the countdown
   // once the phone has been held upright (on a forehead) for a moment.
   useEffect(() => {
     if (spec.mode !== 'tilt') return
@@ -140,27 +143,26 @@ export function Round({
     let uprightSince: number | null = null
     const missing = window.setTimeout(() => !got && setSensor('missing'), 1800)
 
-    const onMotion = (e: DeviceMotionEvent) => {
-      const z = e.accelerationIncludingGravity?.z
-      if (z == null) return
-      if (!got) {
-        got = true
-        setSensor('live')
-      }
-      const now = e.timeStamp || performance.now()
-      const v = detector.current.push(normaliseZ(z, isIOS), now)
-      const p = live.current.phase
-      if (p === 'ready') {
-        if (Math.abs(detector.current.level) < UPRIGHT) {
-          uprightSince ??= now
-          if (now - uprightSince >= UPRIGHT_HOLD_MS) beginCountdown()
-        } else uprightSince = null
-      } else if (p === 'play' && v) decide(v)
-    }
-    window.addEventListener('devicemotion', onMotion)
+    const stop = streamGravityZ(
+      (z, now) => {
+        if (!got) {
+          got = true
+          setSensor('live')
+        }
+        const v = detector.current.push(z, now)
+        const p = live.current.phase
+        if (p === 'ready') {
+          if (Math.abs(detector.current.level) < UPRIGHT) {
+            uprightSince ??= now
+            if (now - uprightSince >= UPRIGHT_HOLD_MS) beginCountdown()
+          } else uprightSince = null
+        } else if (p === 'play' && v) decide(v)
+      },
+      () => {},
+    )
     return () => {
       clearTimeout(missing)
-      window.removeEventListener('devicemotion', onMotion)
+      stop()
     }
   }, [spec.mode, beginCountdown, decide])
 

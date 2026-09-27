@@ -59,6 +59,14 @@ describe('tilt detector', () => {
     expect(run([...hold(3, 40), ...ramp(3, -6, 10), ...hold(-6, 10)], 'med', 30)).toEqual(['correct'])
   })
 
+  it('fires within 2 samples (~33 ms at 60 Hz) of a sharp nod', () => {
+    const det = createTiltDetector(tiltConfig('med'))
+    for (let i = 0; i < 20; i++) det.push(0, i * 16)
+    const fired = [-9, -9, -9, -9].findIndex((z, i) => det.push(z, (20 + i) * 16))
+    expect(fired).toBeGreaterThanOrEqual(0)
+    expect(fired).toBeLessThanOrEqual(1)
+  })
+
   it('flips the iOS sign convention', () => {
     expect(normaliseZ(5, true)).toBe(-5)
     expect(normaliseZ(5, false)).toBe(5)

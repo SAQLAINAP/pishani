@@ -8,15 +8,17 @@ These are the forks in the road for v0. For each one: what we picked, why, and w
 - **Runner-up:** Preact, for a smaller bundle. The app is only around 7 screens (92 kB gzipped JS), so the saving wasn't worth leaving a proven setup. A native Kotlin app would have meant no PWA at all.
 
 ### 2. Tilt reads the gravity vector, not orientation angles
-- **Picked:** only the z axis of `devicemotion.accelerationIncludingGravity`, the one pointing out of the screen.
+- **Picked:** only the z axis of gravity, the one pointing out of the screen.
+  - **Preferred source:** Android's fused `GravitySensor` (accelerometer + gyro), which follows the rotation of a nod directly.
+  - **Fallback:** raw `devicemotion.accelerationIncludingGravity` on iOS, or anywhere the sensor is blocked or silent for 600 ms. The raw accelerometer also picks up the head's forward jerk at the start of a nod, which briefly pulls z the wrong way and felt laggy on a real phone in v0.1.0.
 - **Why:** on a forehead the phone stands upright, which puts `deviceorientation` beta at about 90°. That's where Euler angles hit gimbal lock and jitter.
   - Gravity has no singularity.
   - Upright, z ≈ 0. A nod forward swings it strongly negative and a look up swings it strongly positive.
   - Ignoring x and y means it works whichever way round the phone is in landscape, and even in portrait.
 - **Details:**
-  - Readings are smoothed with an exponential moving average.
+  - Readings are smoothed with a light exponential moving average (weight 0.6, about one sample of lag at 60 Hz, down from 0.35). The fire/re-arm hysteresis handles jitter, so heavy smoothing only added delay.
   - A tilt fires past ~6 m/s² (about 38°), or 4.5 / 7.5 on the High / Low sensitivity settings.
-  - The detector re-arms only after the phone has been back upright (under 3 m/s²) for 250 ms. That's what stops one nod counting twice.
+  - The detector re-arms only after the phone has been back upright (under 3 m/s²) for 150 ms. That's what stops one nod counting twice.
   - The upright baseline is recalibrated at the start of each round, because foreheads lean back.
   - iOS reports gravity with the opposite sign, so `normaliseZ` flips it.
 - **Tested:** `src/game/tilt.test.ts` covers nods, held nods, wobble, jitter and sensitivity. An end-to-end run fed synthetic `devicemotion` events into headless Chrome.
