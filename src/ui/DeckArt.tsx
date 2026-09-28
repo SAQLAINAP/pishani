@@ -252,6 +252,87 @@ const ART: Record<string, () => React.JSX.Element> = {
     </>
   ),
 
+  // A lightbulb moment: glass, screw base, red rays.
+  gk: () => (
+    <>
+      <circle cx="66" cy="30" r="22" {...T} />
+      <circle cx="60" cy="26" r="22" fill={F} />
+      <rect x="48" y="44" width="24" height="10" fill={F} />
+      <rect x="50" y="56" width="20" height="4" fill={F} />
+      <rect x="52" y="62" width="16" height="4" fill={F} />
+      <rect x="56" y="68" width="8" height="4" fill={F} />
+      <g fill={A}>
+        <rect x="14" y="24" width="16" height="5" />
+        <rect x="90" y="24" width="16" height="5" />
+        <polygon points="24,4 28,1 38,13 34,16" />
+        <polygon points="96,4 92,1 82,13 86,16" />
+      </g>
+      <rect x="50" y="16" width="6" height="16" fill="var(--art-accent)" opacity="0.9" />
+    </>
+  ),
+
+  // A monitor showing </>.
+  tech: () => (
+    <>
+      <Cut d={rect(18, 4, 84, 52) + rect(24, 10, 72, 40)} />
+      <rect x="54" y="56" width="12" height="8" fill={F} />
+      <rect x="40" y="64" width="40" height="6" fill={F} />
+      <g fill={A}>
+        <polygon points="46,20 34,30 46,40 49,36 41,30 49,24" />
+        <polygon points="74,20 86,30 74,40 71,36 79,30 71,24" />
+        <polygon points="63,16 67,17 57,44 53,43" />
+      </g>
+    </>
+  ),
+
+  // A medical cross and a heartbeat trace.
+  health: () => (
+    <>
+      <rect x="44" y="2" width="36" height="36" {...T} />
+      <Cut d={'M52 6h20v12h12v20H72v12H52V38H40V18h12Z'} fill={A} />
+      <path d="M0 62h30l6-12 8 20 8-26 8 18h60" stroke={F} strokeWidth="5" fill="none" strokeLinejoin="miter" />
+    </>
+  ),
+
+  // Rising bars and an arrow breaking out of them.
+  finance: () => (
+    <>
+      <rect x="8" y="48" width="16" height="24" fill={F} />
+      <rect x="30" y="36" width="16" height="36" fill={F} />
+      <rect x="52" y="26" width="16" height="46" {...T} />
+      <rect x="74" y="12" width="16" height="60" fill={F} />
+      <path d="M6 40 34 22l18 10L96 6" stroke={A} strokeWidth="6" fill="none" />
+      <polygon points="100,2 86,4 96,16" fill={A} />
+    </>
+  ),
+
+  // A classical facade: red pediment, four columns, a stepped base.
+  history: () => (
+    <>
+      <polygon points="18,24 60,4 102,24" fill={A} />
+      <rect x="18" y="24" width="84" height="6" fill={F} />
+      {[24, 44, 64, 84].map((x) => (
+        <rect key={x} x={x} y="32" width="10" height="30" fill={F} />
+      ))}
+      <rect x="14" y="62" width="92" height="5" fill={F} />
+      <rect x="8" y="67" width="104" height="5" {...T} />
+    </>
+  ),
+
+  // A speech bubble with big quote marks.
+  taglines: () => (
+    <>
+      <polygon points="24,12 108,12 108,52 60,52 44,70 46,52 24,52" {...T} />
+      <polygon points="16,6 100,6 100,46 52,46 36,64 38,46 16,46" fill={F} />
+      <g fill={A}>
+        <rect x="36" y="16" width="10" height="10" />
+        <polygon points="36,26 46,26 40,36 34,36" />
+        <rect x="52" y="16" width="10" height="10" />
+        <polygon points="52,26 62,26 56,36 50,36" />
+      </g>
+    </>
+  ),
+
   // Three cards fanned out, the top one a question.
   mix: () => (
     <>

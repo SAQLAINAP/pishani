@@ -48,6 +48,23 @@ Your feedback was that looking up felt weaker than nodding down, and that some t
 - **Rebound lock:** shortened to 250 ms, so a quick real look-up straight after a correct isn't swallowed.
 - **Regression test:** `tilt.test.ts` covers a look-up from a leaned-back rest.
 
+### 2e. Quiz mode
+- **What it is:** an autonomous quizmaster for groups. One clock drives four phases: intro, ask, reveal and auto-advance. The clock runs on an absolute end time, so pausing just banks the milliseconds left and resuming picks them up again.
+- **Why no scoring:** everyone answers out loud or on paper, so the app has nothing reliable to score. The answer sheet at the end settles arguments.
+- **Question format:** one right answer plus three wrong ones, shuffled every time they're shown, so the correct answer never sits in a predictable slot. Every question is worded to work without options, which lets the same data serve both answer styles. `decks.test.ts` rejects "Which of these…" and "All of the above".
+- **Accuracy:** a wrong "correct" answer is worse than no question. The questions were written with instructions to use only stable, well-documented facts: nothing like "current captain" or "latest", and no disputed questions. A separate agent pass then fact-checked every question.
+- **Repeats:** the same no-repeat shuffle bag as the word decks, stored under a `quiz:` prefix.
+- **Orientation:** no lock. The phone sits on a table either way up.
+- **Actions deck:** has no quiz. General Knowledge is quiz-only.
+
+### 2f. Quiz v2: 3,720 questions, BETA categories, drawn logos
+- **Size:** 180 questions per category. Taglines & Logos has 120: 95 text clues and 25 logo sketches.
+- **Quiz-only decks:** topics you can't act out on a forehead. Four are marked **BETA**: Tech, Health, Finance, History & Geopolitics. They get their own "Quizmaster only" section on Home.
+- **Logos:** simplified geometric sketches drawn in code (`ui/LogoArt.tsx`) in brand colours on a paper tile. No trademarked artwork is bundled. Logos too detailed to sketch fairly are asked as text instead.
+- **Accuracy process:** as requested, there was no separate fact-check pass this time. Writers followed the same rules: stable facts only, no distractor that could arguably be right, nothing that only works with the options shown.
+- **Reviewed by hand:** alcohol questions were removed from the food decks, and city questions that repeated landmark or country questions were swapped out. That keeps Mix free of duplicates.
+- **How it was written:** long single writer runs kept stalling, so everything was written in small batches of 20–30, saved as they went.
+
 ### 3. Tilt mode starts itself
 The countdown starts once the phone has been held upright for 0.9 s. Holding it naturally in your hand tips the screen back and doesn't trigger it. You can also tap to start.
 

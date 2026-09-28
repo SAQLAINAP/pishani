@@ -31,6 +31,24 @@ It works **fully offline** as a PWA or an Android APK, fits every screen from 32
 | **Tilt** (classic) | Nod down: screen toward the floor | Look up: screen toward the ceiling |
 | **Swipe** | Swipe down | Swipe up |
 
+### Quiz mode: the autonomous quizmaster
+
+Put the phone in the middle of the group.
+
+1. A question appears, and a concrete column on the side drains to zero with a tick each second.
+2. The last three seconds turn red and louder.
+3. The buzzer goes, the answer is revealed, and the next question starts on its own a few seconds later.
+4. Everyone locks their answer before the buzzer. The app doesn't keep score; the group does.
+
+- **Two answer styles:** **A B C D** (four options, and the right one lights up green) or **Reveal** (the question alone, with the answer shown at zero).
+- **Options:** 10 / 15 / 20 / 30 seconds per question, and 10 or 20 questions per quiz.
+- **Controls:** Pause, or Android back, freezes the clock. **Show** and **Next** skip ahead when everyone has already locked in.
+- **Afterwards:** an answer sheet lists every question with its answer.
+- **Categories:** every deck except Actions has a quiz (you can't quiz a mime), with 180 questions each (3,720 quiz questions in total). A **Quizmaster only** section adds:
+  - **General Knowledge**
+  - **Taglines & Logos:** slogans, film dialogues, catchphrases, and simplified logo sketches drawn in-app. No trademarked artwork is bundled.
+  - Four **BETA** categories: Tech & Software, Medic & Health, Finance & Econ, History & Geopolitics.
+
 In tilt mode the countdown starts by itself once the phone is held upright on a forehead, or you can tap to start. If the device has no motion sensor (a desktop, say), the round falls back to swipe plus on-screen buttons. On a keyboard, ↓ or Space means correct and ↑ means pass.
 
 ## Decks
@@ -70,6 +88,11 @@ The style mixes three things: raw civic-concrete architecture, the Swiss Interna
   <img src="docs/screenshots/14-home-tablet.webp" width="360" alt="Tablet">
   <img src="docs/screenshots/13-home-320.webp" width="200" alt="320px phone">
   <img src="docs/screenshots/12-settings.webp" width="200" alt="Settings">
+</p>
+<p>
+  <img src="docs/screenshots/21-home-quizmaster.webp" width="220" alt="Quizmaster-only categories">
+  <img src="docs/screenshots/19-quiz-ask.webp" width="220" alt="Quiz: a live question with the draining timer">
+  <img src="docs/screenshots/20-quiz-reveal-dark.webp" width="460" alt="Quiz: answer revealed">
 </p>
 <p>
   <img src="docs/screenshots/15-home-dark.webp" width="260" alt="Dark mode home">

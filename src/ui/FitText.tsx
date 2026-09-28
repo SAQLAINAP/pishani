@@ -5,7 +5,7 @@ import { useLayoutEffect, useRef } from 'react'
  * a word — "Dilwale Dulhania Le Jayenge" and "Goa" both fill the slab.
  * Binary search on font-size, re-run on resize and once webfonts land.
  */
-export function FitText({ text, className = '' }: { text: string; className?: string }) {
+export function FitText({ text, className = '', max = 480 }: { text: string; className?: string; max?: number }) {
   const box = useRef<HTMLDivElement>(null)
   const inner = useRef<HTMLDivElement>(null)
 
@@ -20,7 +20,7 @@ export function FitText({ text, className = '' }: { text: string; className?: st
       const h = b.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)
       if (w <= 0 || h <= 0) return
       let lo = 12
-      let hi = Math.max(lo, Math.min(h, 480))
+      let hi = Math.max(lo, Math.min(h, max))
       while (hi - lo > 1) {
         const mid = (lo + hi) / 2
         el.style.fontSize = `${mid}px`
@@ -36,7 +36,7 @@ export function FitText({ text, className = '' }: { text: string; className?: st
     ro.observe(b)
     void document.fonts?.ready.then(fit)
     return () => ro.disconnect()
-  }, [text])
+  }, [text, max])
 
   return (
     <div className="fit" ref={box}>

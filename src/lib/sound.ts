@@ -41,6 +41,24 @@ export const sfx = {
   tick: () => tone(1200, 0, 0.03, 'square', 0.06),
   count: () => tone(440, 0, 0.12, 'square', 0.1),
   go: () => tone(880, 0, 0.25, 'square', 0.12),
+  // ── Quiz mode ──
+  /** Soft wood-block tick, once a second while a question is live. */
+  qTick: () => tone(820, 0, 0.035, 'triangle', 0.07),
+  /** Last three seconds: higher, louder — the room should feel it. */
+  qTickHot: () => tone(1320, 0, 0.05, 'square', 0.09),
+  /** Time's up: a low two-layer buzzer. */
+  buzzer: () => {
+    tone(110, 0, 0.55, 'sawtooth', 0.12)
+    tone(165, 0, 0.55, 'square', 0.05)
+  },
+  /** The answer lands: a quick rising triad. */
+  reveal: () => {
+    tone(523, 0.05, 0.12, 'triangle', 0.1)
+    tone(659, 0.13, 0.12, 'triangle', 0.1)
+    tone(784, 0.21, 0.22, 'triangle', 0.11)
+  },
+  /** Next question slides in. */
+  next: () => tone(440, 0, 0.06, 'triangle', 0.06),
   end: () => {
     tone(523, 0, 0.18)
     tone(392, 0.16, 0.18)

@@ -15,6 +15,12 @@ describe('storage', () => {
     )
     // A v0.1.0 save has no theme field at all — it should pick up the default.
     expect(parse('{"v":0,"settings":{"mode":"swipe"}}').settings.theme).toBe('system')
+    // …and the quiz settings that arrived in v0.3.
+    const old = parse('{"v":0,"settings":{"mode":"quiz","quizSeconds":7,"quizStyle":"essay"}}').settings
+    expect(old.mode).toBe('quiz')
+    expect(old.quizSeconds).toBe(15)
+    expect(old.quizStyle).toBe('mcq')
+    expect(old.quizCount).toBe(10)
   })
 
   it('survives a restart', () => {

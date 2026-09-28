@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { RoundSpec } from '../App'
-import { DECKS, MIX, type PlayableDeck } from '../data'
+import { DECKS, MIX, QUIZ_ONLY, type PlayableDeck } from '../data'
 import { exitApp, useBack } from '../lib/back'
 import { store } from '../store/storage'
 import { useSave } from '../store/useStore'
@@ -64,10 +64,20 @@ export function Home({ onStart, onSettings }: { onStart: (s: RoundSpec) => void;
           ))}
         </div>
 
+        <div className="section-label mono" style={{ marginTop: 'clamp(26px, 6vw, 44px)' }}>
+          02 — Quizmaster only
+        </div>
+        <div className="decks">
+          {QUIZ_ONLY.map((d, i) => (
+            <DeckSlab key={d.id} deck={d} index={DECKS.length + 2 + i} best={undefined} onPick={setPicked} />
+          ))}
+        </div>
+
         <footer className="legend mono">
           <span>[ Tilt ↓ = correct ]</span>
           <span>[ Tilt ↑ = pass ]</span>
           <span>[ Swipe ↓ correct · ↑ pass ]</span>
+          <span>[ Quiz: lock it before the buzzer ]</span>
         </footer>
       </main>
 
@@ -143,15 +153,24 @@ function DeckSlab({
         </>
       ) : (
         <>
-          <span className="deck-head mono">{pad(index)}</span>
+          <span className="deck-head mono">
+            <span>{pad(index)}</span>
+            {deck.beta && <span className="beta">Beta</span>}
+          </span>
           <DeckArt id={deck.id} />
           <span>
             <span className="deck-title">{deck.title}</span>
             <span className="deck-tag">{deck.tag}</span>
           </span>
           <span className="deck-foot mono">
-            <span>Best</span>
-            <b>{best ?? '—'}</b>
+            {deck.quizOnly ? (
+              <span>Quizmaster</span>
+            ) : (
+              <>
+                <span>Best</span>
+                <b>{best ?? '—'}</b>
+              </>
+            )}
           </span>
         </>
       )}

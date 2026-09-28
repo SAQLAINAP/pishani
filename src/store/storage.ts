@@ -5,7 +5,8 @@ import type { Sensitivity, Verdict } from '../game/tilt'
  * mirrored to localStorage under one versioned key so it survives restarts.
  * No database — there is nothing here that needs one.
  */
-export type Mode = 'tilt' | 'swipe'
+export type Mode = 'tilt' | 'swipe' | 'quiz'
+export type QuizStyle = 'mcq' | 'reveal'
 export type Theme = 'system' | 'light' | 'dark'
 
 export interface Settings {
@@ -15,6 +16,12 @@ export interface Settings {
   mode: Mode
   seconds: number
   theme: Theme
+  /** Quiz mode: four options, or the question alone with the answer revealed. */
+  quizStyle: QuizStyle
+  /** Quiz mode: seconds per question. */
+  quizSeconds: number
+  /** Quiz mode: questions per game. */
+  quizCount: number
 }
 
 export interface RoundRecord {
@@ -38,6 +45,8 @@ export interface SaveData {
 export const STORAGE_NAME = 'pishani:v0'
 export const HISTORY_LIMIT = 20
 export const DURATIONS = [30, 60, 90, 120] as const
+export const QUIZ_SECONDS = [10, 15, 20, 30] as const
+export const QUIZ_COUNTS = [10, 20] as const
 
 export const DEFAULT_SETTINGS: Settings = {
   sound: true,
@@ -46,6 +55,9 @@ export const DEFAULT_SETTINGS: Settings = {
   mode: 'tilt',
   seconds: 60,
   theme: 'system',
+  quizStyle: 'mcq',
+  quizSeconds: 15,
+  quizCount: 10,
 }
 
 export function freshData(): SaveData {
@@ -60,7 +72,10 @@ export function parse(raw: string | null): SaveData {
     if (!d || typeof d !== 'object' || d.v !== 0) return freshData()
     const s = { ...DEFAULT_SETTINGS, ...(d.settings ?? {}) }
     if (!['low', 'med', 'high'].includes(s.sensitivity)) s.sensitivity = 'med'
-    if (s.mode !== 'tilt' && s.mode !== 'swipe') s.mode = 'tilt'
+    if (!['tilt', 'swipe', 'quiz'].includes(s.mode)) s.mode = 'tilt'
+    if (s.quizStyle !== 'mcq' && s.quizStyle !== 'reveal') s.quizStyle = 'mcq'
+    if (!QUIZ_SECONDS.includes(s.quizSeconds as (typeof QUIZ_SECONDS)[number])) s.quizSeconds = 15
+    if (!QUIZ_COUNTS.includes(s.quizCount as (typeof QUIZ_COUNTS)[number])) s.quizCount = 10
     if (!['system', 'light', 'dark'].includes(s.theme)) s.theme = 'system'
     if (!DURATIONS.includes(s.seconds as (typeof DURATIONS)[number])) s.seconds = 60
     return {

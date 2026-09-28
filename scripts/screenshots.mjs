@@ -118,12 +118,53 @@ try {
   await shot(page, '12-settings')
   await page.close()
 
+  // The Quizmaster-only section (GK, Taglines & Logos, BETA categories).
+  page = await open(browser, PHONE)
+  await page.evaluate(() => {
+    const el = [...document.querySelectorAll('.section-label')].find((e) => e.textContent.includes('Quizmaster'))
+    el?.scrollIntoView()
+  })
+  await sleep(300)
+  await shot(page, '21-home-quizmaster')
+  await page.close()
+
   page = await open(browser, SMALL)
   await shot(page, '13-home-320')
   await page.close()
 
   page = await open(browser, TABLET)
   await shot(page, '14-home-tablet')
+  await page.close()
+
+  // Quiz mode: a live question (portrait) and a reveal (landscape).
+  page = await open(browser, PHONE)
+  await page.evaluate(() => {
+    const d = JSON.parse(localStorage.getItem('pishani:v0'))
+    d.settings = { ...d.settings, mode: 'quiz', quizStyle: 'mcq', quizSeconds: 10, quizCount: 10 }
+    localStorage.setItem('pishani:v0', JSON.stringify(d))
+  })
+  await page.reload({ waitUntil: 'networkidle0' })
+  await clickText(page, 'button.deck', 'General Knowledge')
+  await sleep(350)
+  await shot(page, '18-quiz-setup')
+  await clickText(page, 'button.cta', 'Start quiz')
+  await sleep(3000 + 4200)
+  await shot(page, '19-quiz-ask')
+  await page.close()
+  page = await open(browser, LAND, 'dark')
+  await page.evaluate(() => {
+    const d = JSON.parse(localStorage.getItem('pishani:v0'))
+    d.settings = { ...d.settings, mode: 'quiz', quizStyle: 'mcq', quizSeconds: 10, quizCount: 10 }
+    localStorage.setItem('pishani:v0', JSON.stringify(d))
+  })
+  await page.reload({ waitUntil: 'networkidle0' })
+  await clickText(page, 'button.deck', 'Landmarks')
+  await sleep(300)
+  await clickText(page, 'button.cta', 'Start quiz')
+  await sleep(3600)
+  await page.keyboard.press('Space') // Show the answer
+  await sleep(500)
+  await shot(page, '20-quiz-reveal-dark')
   await page.close()
 
   // Dark mode: home, setup, and a round in landscape.

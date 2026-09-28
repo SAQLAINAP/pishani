@@ -9,4 +9,8 @@ export interface Deck {
   /** One-line hint on the setup sheet. */
   blurb: string
   words: string[]
+  /** Quiz-only categories (General Knowledge) have no Heads Up words. */
+  quizOnly?: boolean
+  /** Newer categories, flagged on the slab while their question banks settle in. */
+  beta?: boolean
 }
