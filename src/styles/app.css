@@ -207,7 +207,7 @@ button.slab:active,
 /* ────────────────────────── home ────────────────────────── */
 
 .home {
-  max-width: 1280px;
+  max-width: 1180px;
   margin: 0 auto;
   z-index: 1;
 }
@@ -241,6 +241,8 @@ button.slab:active,
   /* Sized to the column so the name fits and only the red full stop hangs
      off the edge — the anti-design gesture without losing the word. */
   font-size: 18.2cqi;
+  /* …but on a laptop the full-bleed name would eat the whole first screen. */
+  max-width: 100%;
   margin: 14px 0 0 -0.04em;
   white-space: nowrap;
 }
@@ -301,6 +303,20 @@ button.slab:active,
   padding-bottom: var(--drop);
 }
 
+/* Large screens: fewer, bigger slabs instead of eight thumbnails a row. */
+@media (min-width: 720px) {
+  .decks {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (min-width: 1100px) {
+  .decks {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .wordmark {
+    font-size: min(18.2cqi, 150px);
+  }
+}
 .deck {
   container-type: inline-size;
   display: flex;

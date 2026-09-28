@@ -8,7 +8,7 @@ import { createTiltDetector, tiltConfig, type Verdict } from '../game/tilt'
 import { buzz } from '../lib/haptics'
 import { useBack } from '../lib/back'
 import { streamPitch } from '../lib/motion'
-import { unlockOrientation } from '../lib/platform'
+import { isTouch, unlockOrientation } from '../lib/platform'
 import { sfx } from '../lib/sound'
 import { holdScreenOn, releaseScreen } from '../lib/wakelock'
 import { store } from '../store/storage'
@@ -253,7 +253,7 @@ export function Round({
           </span>
         </div>
         <div className="stage-body">
-          <h1 className="ready-title">{tilt ? 'On your pishani.' : 'Hold it up.'}</h1>
+          <h1 className="ready-title">{tilt ? 'On your pishani.' : isTouch ? 'Hold it up.' : 'Face the screen away.'}</h1>
           <p className="ready-hint mono">
             {tilt ? (
               <>
@@ -269,9 +269,9 @@ export function Round({
                     <br />
                   </>
                 )}
-                Swipe down = correct · Swipe up = pass
+                {isTouch ? 'Swipe down = correct · Swipe up = pass' : '↓ or Space = correct · ↑ = pass · or the buttons'}
                 <br />
-                Tap anywhere to start
+                {isTouch ? 'Tap anywhere to start' : 'Click or press Enter to start'}
               </>
             )}
           </p>

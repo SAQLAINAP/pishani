@@ -9,6 +9,13 @@ export const isIOS =
 
 export const isTouch = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches
 
+/**
+ * Tilt needs a phone you can put on your forehead. The Android app always
+ * qualifies; in a browser, only touch-first devices (phones, tablets) do —
+ * a laptop, even a touchscreen one, reports a fine primary pointer.
+ */
+export const canTilt = isNative || isTouch
+
 type MotionPermission = { requestPermission?: () => Promise<'granted' | 'denied'> }
 
 /**

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { deckById } from '../data'
 import type { Sensitivity } from '../game/tilt'
 import { useBack } from '../lib/back'
+import { canTilt } from '../lib/platform'
 import { store, type Theme } from '../store/storage'
 import { useSave } from '../store/useStore'
 
@@ -75,6 +76,7 @@ export function Settings({ onBack }: { onBack: () => void }) {
             onChange={(vibration) => store.updateSettings({ vibration })}
           />
         </div>
+        {canTilt && (
         <div className="row">
           <span className="label">
             Tilt sensitivity<small>High = smaller nod</small>
@@ -91,6 +93,7 @@ export function Settings({ onBack }: { onBack: () => void }) {
             ))}
           </div>
         </div>
+        )}
         <div className="row">
           <span className="label">
             Stats<small>Best scores, history, seen cards</small>

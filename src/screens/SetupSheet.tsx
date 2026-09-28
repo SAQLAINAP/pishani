@@ -3,7 +3,7 @@ import type { RoundSpec } from '../App'
 import type { PlayableDeck } from '../data'
 import { hasQuiz } from '../data/quiz'
 import { useBack } from '../lib/back'
-import { requestMotion } from '../lib/platform'
+import { canTilt, requestMotion } from '../lib/platform'
 import { DURATIONS, QUIZ_COUNTS, QUIZ_SECONDS, store, type Mode } from '../store/storage'
 import { useSave } from '../store/useStore'
 import { CloseIcon } from '../ui/Icons'
@@ -32,7 +32,9 @@ export function SetupSheet({
   const quizOK = hasQuiz(deck.id)
   // GK is quiz-only; Actions has no quiz. Fall back without overwriting the
   // saved preference, so the next deck opens in the mode you last chose.
-  const mode: Mode = !wordsOK ? 'quiz' : !quizOK && settings.mode === 'quiz' ? 'tilt' : settings.mode
+  const fallback: Mode = canTilt ? 'tilt' : 'swipe'
+  let mode: Mode = !wordsOK ? 'quiz' : !quizOK && settings.mode === 'quiz' ? fallback : settings.mode
+  if (mode === 'tilt' && !canTilt) mode = 'swipe'
   const isQuiz = mode === 'quiz'
 
   function setMode(m: Mode) {
@@ -77,17 +79,17 @@ export function SetupSheet({
           <div className="field">
             <span className="mono">02 — Mode</span>
             <div className="seg" role="group" aria-label="Mode">
+              {wordsOK && canTilt && (
+                <button aria-pressed={mode === 'tilt'} onClick={() => setMode('tilt')}>
+                  Tilt
+                  <small>On forehead</small>
+                </button>
+              )}
               {wordsOK && (
-                <>
-                  <button aria-pressed={mode === 'tilt'} onClick={() => setMode('tilt')}>
-                    Tilt
-                    <small>On forehead</small>
-                  </button>
-                  <button aria-pressed={mode === 'swipe'} onClick={() => setMode('swipe')}>
-                    Swipe
-                    <small>↓ yes · ↑ pass</small>
-                  </button>
-                </>
+                <button aria-pressed={mode === 'swipe'} onClick={() => setMode('swipe')}>
+                  {canTilt ? 'Swipe' : 'Classic'}
+                  <small>{canTilt ? '↓ yes · ↑ pass' : 'Buttons or ↓ ↑ keys'}</small>
+                </button>
               )}
               {quizOK && (
                 <button aria-pressed={isQuiz} onClick={() => setMode('quiz')}>

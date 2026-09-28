@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { RoundSpec } from '../App'
 import { DECKS, MIX, QUIZ_ONLY, type PlayableDeck } from '../data'
 import { exitApp, useBack } from '../lib/back'
+import { canTilt } from '../lib/platform'
 import { store } from '../store/storage'
 import { useSave } from '../store/useStore'
 import { DeckArt } from '../ui/DeckArt'
@@ -74,9 +75,19 @@ export function Home({ onStart, onSettings }: { onStart: (s: RoundSpec) => void;
         </div>
 
         <footer className="legend mono">
-          <span>[ Tilt ↓ = correct ]</span>
-          <span>[ Tilt ↑ = pass ]</span>
-          <span>[ Swipe ↓ correct · ↑ pass ]</span>
+          {canTilt ? (
+            <>
+              <span>[ Tilt ↓ = correct ]</span>
+              <span>[ Tilt ↑ = pass ]</span>
+              <span>[ Swipe ↓ correct · ↑ pass ]</span>
+            </>
+          ) : (
+            <>
+              <span>[ ↓ or Space = correct ]</span>
+              <span>[ ↑ = pass ]</span>
+              <span>[ Tilt mode on your phone ]</span>
+            </>
+          )}
           <span>[ Quiz: lock it before the buzzer ]</span>
         </footer>
       </main>
