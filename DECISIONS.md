@@ -65,6 +65,15 @@ Your feedback was that looking up felt weaker than nodding down, and that some t
 - **Reviewed by hand:** alcohol questions were removed from the food decks, and city questions that repeated landmark or country questions were swapped out. That keeps Mix free of duplicates.
 - **How it was written:** long single writer runs kept stalling, so everything was written in small batches of 20–30, saved as they went.
 
+### 2g. Solo quiz and Blitz
+- **Solo:** the one quiz mode where the app keeps score, because it's the only one where the app knows the answer.
+- **The lock-in beat:** a tap locks the answer, and the verdict lands 0.9 s later. That suspense is the KBC moment. The question clock freezes the instant you lock in.
+- **Running out of time:** counts as no answer, with the buzzer.
+- **Reveal timing:** shorter than in group mode (2.6 s instead of 5 s), because nobody needs to argue.
+- **Answer style:** reveal-only is hidden for solo, since there'd be nothing to tap.
+- **Times:** 5 / 10 / 15 / 20 s. 30 s was dropped as too slow. Old saves holding 30 fall back to 15.
+- **Blitz:** the 5 s box burns with a CSS flame (gradient plus a clip-path of flame tips, slowly flickering, and still under reduced motion), to say fast-paced without adding a word.
+
 ### 3. Tilt mode starts itself
 The countdown starts once the phone has been held upright for 0.9 s. Holding it naturally in your hand tips the screen back and doesn't trigger it. You can also tap to start.
 

@@ -7,6 +7,7 @@ import type { Sensitivity, Verdict } from '../game/tilt'
  */
 export type Mode = 'tilt' | 'swipe' | 'quiz'
 export type QuizStyle = 'mcq' | 'reveal'
+export type QuizPlayers = 'group' | 'solo'
 export type Theme = 'system' | 'light' | 'dark'
 
 export interface Settings {
@@ -22,6 +23,8 @@ export interface Settings {
   quizSeconds: number
   /** Quiz mode: questions per game. */
   quizCount: number
+  /** Quiz mode: a room of people calling answers, or one player tapping (KBC-style). */
+  quizPlayers: QuizPlayers
 }
 
 export interface RoundRecord {
@@ -45,8 +48,8 @@ export interface SaveData {
 export const STORAGE_NAME = 'pishani:v0'
 export const HISTORY_LIMIT = 20
 export const DURATIONS = [30, 60, 90, 120] as const
-export const QUIZ_SECONDS = [10, 15, 20, 30] as const
-export const QUIZ_COUNTS = [10, 20] as const
+export const QUIZ_SECONDS = [5, 10, 15, 20] as const
+export const QUIZ_COUNTS = [10, 15, 20, 25] as const
 
 export const DEFAULT_SETTINGS: Settings = {
   sound: true,
@@ -58,6 +61,7 @@ export const DEFAULT_SETTINGS: Settings = {
   quizStyle: 'mcq',
   quizSeconds: 15,
   quizCount: 10,
+  quizPlayers: 'group',
 }
 
 export function freshData(): SaveData {
@@ -75,6 +79,7 @@ export function parse(raw: string | null): SaveData {
     if (!['tilt', 'swipe', 'quiz'].includes(s.mode)) s.mode = 'tilt'
     if (s.quizStyle !== 'mcq' && s.quizStyle !== 'reveal') s.quizStyle = 'mcq'
     if (!QUIZ_SECONDS.includes(s.quizSeconds as (typeof QUIZ_SECONDS)[number])) s.quizSeconds = 15
+    if (s.quizPlayers !== 'group' && s.quizPlayers !== 'solo') s.quizPlayers = 'group'
     if (!QUIZ_COUNTS.includes(s.quizCount as (typeof QUIZ_COUNTS)[number])) s.quizCount = 10
     if (!['system', 'light', 'dark'].includes(s.theme)) s.theme = 'system'
     if (!DURATIONS.includes(s.seconds as (typeof DURATIONS)[number])) s.seconds = 60

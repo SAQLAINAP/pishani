@@ -6,7 +6,7 @@ import { useBack } from '../lib/back'
 import { canTilt, requestMotion } from '../lib/platform'
 import { DURATIONS, QUIZ_COUNTS, QUIZ_SECONDS, store, type Mode } from '../store/storage'
 import { useSave } from '../store/useStore'
-import { CloseIcon } from '../ui/Icons'
+import { CloseIcon, FlameIcon } from '../ui/Icons'
 
 export function SetupSheet({
   deck,
@@ -51,8 +51,10 @@ export function SetupSheet({
             deckId: deck.id,
             mode,
             seconds: settings.quizSeconds,
-            quizStyle: settings.quizStyle,
+            // Solo is always four options — there's nothing to tap in reveal-only.
+            quizStyle: settings.quizPlayers === 'solo' ? 'mcq' : settings.quizStyle,
             count: settings.quizCount,
+            solo: settings.quizPlayers === 'solo',
           }
         : { deckId: deck.id, mode, seconds: settings.seconds },
     )
@@ -94,7 +96,7 @@ export function SetupSheet({
               {quizOK && (
                 <button aria-pressed={isQuiz} onClick={() => setMode('quiz')}>
                   Quiz
-                  <small>Group GK</small>
+                  <small>Group or solo</small>
                 </button>
               )}
             </div>
@@ -104,41 +106,64 @@ export function SetupSheet({
         {isQuiz ? (
           <>
             <div className="field">
-              <span className="mono">03 — Answers</span>
-              <div className="seg" role="group" aria-label="Answer style">
+              <span className="mono">03 — Players</span>
+              <div className="seg" role="group" aria-label="Players">
                 <button
-                  aria-pressed={settings.quizStyle === 'mcq'}
-                  onClick={() => store.updateSettings({ quizStyle: 'mcq' })}
+                  aria-pressed={settings.quizPlayers === 'group'}
+                  onClick={() => store.updateSettings({ quizPlayers: 'group' })}
                 >
-                  A B C D
-                  <small>4 options</small>
+                  Group
+                  <small>Everyone calls it</small>
                 </button>
                 <button
-                  aria-pressed={settings.quizStyle === 'reveal'}
-                  onClick={() => store.updateSettings({ quizStyle: 'reveal' })}
+                  aria-pressed={settings.quizPlayers === 'solo'}
+                  onClick={() => store.updateSettings({ quizPlayers: 'solo' })}
                 >
-                  Reveal
-                  <small>Answer at zero</small>
+                  Solo
+                  <small>Tap to lock it in</small>
                 </button>
               </div>
             </div>
+            {settings.quizPlayers === 'group' && (
+              <div className="field">
+                <span className="mono">04 — Answers</span>
+                <div className="seg" role="group" aria-label="Answer style">
+                  <button
+                    aria-pressed={settings.quizStyle === 'mcq'}
+                    onClick={() => store.updateSettings({ quizStyle: 'mcq' })}
+                  >
+                    A B C D
+                    <small>4 options</small>
+                  </button>
+                  <button
+                    aria-pressed={settings.quizStyle === 'reveal'}
+                    onClick={() => store.updateSettings({ quizStyle: 'reveal' })}
+                  >
+                    Reveal
+                    <small>Answer at zero</small>
+                  </button>
+                </div>
+              </div>
+            )}
             <div className="field">
-              <span className="mono">04 — Per question</span>
+              <span className="mono">{settings.quizPlayers === 'group' ? '05' : '04'} — Per question</span>
               <div className="seg" role="group" aria-label="Seconds per question">
                 {QUIZ_SECONDS.map((sec) => (
                   <button
                     key={sec}
+                    className={sec === 5 ? 'fire' : undefined}
                     aria-pressed={settings.quizSeconds === sec}
                     onClick={() => store.updateSettings({ quizSeconds: sec })}
                   >
+                    {sec === 5 && <FlameIcon />}
                     {sec}
-                    <small>sec</small>
+                    <small>{sec === 5 ? 'Blitz' : 'sec'}</small>
                   </button>
                 ))}
               </div>
             </div>
             <div className="field">
-              <span className="mono">05 — Questions</span>
+              <span className="mono">{settings.quizPlayers === 'group' ? '06' : '05'} — Questions</span>
               <div className="seg" role="group" aria-label="Questions per quiz">
                 {QUIZ_COUNTS.map((n) => (
                   <button

@@ -14,6 +14,10 @@ type Phase = 'intro' | 'ask' | 'reveal'
 
 /** How long the answer stays up before the next question starts by itself. */
 const REVEAL_MS = 5000
+/** Solo: after a tap the pick glows orange this long before the verdict — the KBC beat. */
+const LOCK_MS = 900
+/** Solo: the verdict needs less time on screen than a group argument does. */
+const SOLO_REVEAL_MS = 2600
 const INTRO_MS = 3000
 /** The buzzer gets a beat of silence before the answer chime. */
 const CHIME_DELAY_MS = 380
@@ -33,6 +37,7 @@ export function Quiz({
   cards,
   style,
   seconds,
+  solo = false,
   onQuit,
   onDone,
 }: {
@@ -40,8 +45,11 @@ export function Quiz({
   cards: QuizCard[]
   style: QuizStyle
   seconds: number
+  /** One player taps to lock an answer; the app keeps score. */
+  solo?: boolean
   onQuit: () => void
-  onDone: (asked: QuizCard[]) => void
+  /** `picks` (solo only): the option index chosen per question, null = time ran out. */
+  onDone: (asked: QuizCard[], picks?: (number | null)[]) => void
 }) {
   const settings = store.get().settings
   const [phase, setPhase] = useState<Phase>('intro')
@@ -49,22 +57,26 @@ export function Quiz({
   const [secs, setSecs] = useState(3)
   const [paused, setPaused] = useState(false)
   const [quitArmed, setQuitArmed] = useState(false)
+  const [picked, setPicked] = useState<number | null>(null)
+  const picks = useRef<(number | null)[]>([])
 
   const endAt = useRef(performance.now() + INTRO_MS)
   const banked = useRef(0) // ms left, while paused
   const bar = useRef<HTMLDivElement>(null)
   const advanceBar = useRef<HTMLDivElement>(null)
-  const live = useRef({ phase, index, paused })
-  live.current = { phase, index, paused }
+  const live = useRef({ phase, index, paused, picked })
+  live.current = { phase, index, paused, picked }
   const timers = useRef<number[]>([])
   const finished = useRef(false)
 
   const card = cards[index]
 
   const startPhase = useCallback((p: Phase, i: number, ms: number) => {
-    live.current = { ...live.current, phase: p, index: i }
+    const fresh = p === 'ask' && i !== live.current.index
+    live.current = { ...live.current, phase: p, index: i, ...(fresh || p === 'ask' ? { picked: null } : {}) }
     setPhase(p)
     setIndex(i)
+    if (p === 'ask') setPicked(null)
     endAt.current = performance.now() + ms
     setSecs(Math.ceil(ms / 1000))
   }, [])
@@ -75,6 +87,14 @@ export function Quiz({
     if (p === 'intro') {
       if (settings.sound) sfx.go()
       startPhase('ask', 0, seconds * 1000)
+    } else if (p === 'ask' && solo) {
+      // Either the lock-in beat ended or the clock ran out (picked = null).
+      const choice = live.current.picked
+      picks.current[i] = choice
+      const right = choice === cards[i].answerIndex
+      if (settings.sound) (right ? sfx.correct : sfx.buzzer)()
+      if (settings.vibration) buzz(right ? 60 : [60, 40, 120])
+      startPhase('reveal', i, SOLO_REVEAL_MS)
     } else if (p === 'ask') {
       if (settings.sound) {
         sfx.buzzer()
@@ -86,13 +106,13 @@ export function Quiz({
       // The rAF loop keeps seeing left <= 0 until unmount — finish once.
       if (!finished.current) {
         finished.current = true
-        onDone(cards)
+        onDone(cards, solo ? picks.current : undefined)
       }
     } else {
       if (settings.sound) sfx.next()
       startPhase('ask', i + 1, seconds * 1000)
     }
-  }, [cards, seconds, settings, startPhase, onDone])
+  }, [cards, seconds, solo, settings, startPhase, onDone])
 
   // The clock.
   useEffect(() => {
@@ -102,13 +122,15 @@ export function Quiz({
       raf = requestAnimationFrame(frame)
       if (live.current.paused) return
       const left = Math.max(0, endAt.current - performance.now())
-      const { phase: p } = live.current
-      const span = p === 'intro' ? INTRO_MS : p === 'ask' ? seconds * 1000 : REVEAL_MS
+      const { phase: p, picked: locked } = live.current
+      const span = p === 'intro' ? INTRO_MS : p === 'ask' ? seconds * 1000 : solo ? SOLO_REVEAL_MS : REVEAL_MS
       const frac = left / span
+      // Once a solo answer is locked, the question clock freezes where it stopped.
+      const frozen = p === 'ask' && locked !== null
       if (p === 'reveal') advanceBar.current?.style.setProperty('--left', String(frac))
-      else bar.current?.style.setProperty('--left', String(frac))
+      else if (!frozen) bar.current?.style.setProperty('--left', String(frac))
       const sec = Math.ceil(left / 1000)
-      if (sec !== lastSec) {
+      if (sec !== lastSec && !frozen) {
         lastSec = sec
         setSecs(sec)
         if (settings.sound && sec > 0) {
@@ -123,7 +145,7 @@ export function Quiz({
     }
     raf = requestAnimationFrame(frame)
     return () => cancelAnimationFrame(raf)
-  }, [seconds, settings.sound, onZero])
+  }, [seconds, solo, settings.sound, onZero])
 
   // Screen stays on; the quiz works in any orientation, so make sure nothing
   // is still locked from a tilt round.
@@ -156,6 +178,15 @@ export function Quiz({
     if (live.current.paused || live.current.phase === 'intro') return
     endAt.current = performance.now()
   }
+  /** Solo: lock in an option. The verdict lands after a short suspense beat. */
+  function pick(i: number) {
+    const L = live.current
+    if (!solo || L.phase !== 'ask' || L.paused || L.picked !== null) return
+    live.current = { ...L, picked: i }
+    setPicked(i)
+    if (settings.sound) sfx.count()
+    endAt.current = performance.now() + LOCK_MS
+  }
   function quit() {
     if (quitArmed) return onQuit()
     setQuitArmed(true)
@@ -168,7 +199,9 @@ export function Quiz({
   // Space / Enter skip, P pauses — for a laptop on the coffee table.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === ' ' || e.key === 'Enter') skip()
+      const slot = '1234'.indexOf(e.key) >= 0 ? '1234'.indexOf(e.key) : 'abcd'.indexOf(e.key.toLowerCase())
+      if (solo && slot >= 0 && e.key.length === 1) pick(slot)
+      else if (e.key === ' ' || e.key === 'Enter') skip()
       else if (e.key === 'p' || e.key === 'Escape') (live.current.paused ? resume : pause)()
       else return
       e.preventDefault()
@@ -190,6 +223,12 @@ export function Quiz({
         <span className="quiz-meta">
           {phase === 'intro' ? 'Quiz time' : `Q ${String(index + 1).padStart(2, '0')}/${String(cards.length).padStart(2, '0')}`}{' '}
           · {title}
+          {solo && phase !== 'intro' && (
+            <b className="solo-score">
+              {' '}
+              · ✓ {picks.current.filter((p, i) => p !== null && p === cards[i]?.answerIndex).length}
+            </b>
+          )}
         </span>
         <button className="slab back tone-paper mono" onClick={pause} aria-label="Pause">
           ❚❚ <span className="hide-narrow">Pause</span>
@@ -199,7 +238,11 @@ export function Quiz({
       {phase === 'intro' ? (
         <div className="stage-body">
           <p className="mono ready-hint" style={{ textAlign: 'center' }}>
-            {style === 'mcq' ? 'Lock a letter before the buzzer' : 'Lock your answer before the buzzer'}
+            {solo
+              ? 'Tap your answer before the buzzer — no lifelines'
+              : style === 'mcq'
+                ? 'Lock a letter before the buzzer'
+                : 'Lock your answer before the buzzer'}
           </p>
           <div className="countdown" key={secs}>
             {Math.max(1, secs)}
@@ -219,17 +262,44 @@ export function Quiz({
             </div>
 
             {style === 'mcq' ? (
-              <ol className={`options ${revealed ? 'revealed' : ''}`} key={`o${index}`}>
-                {card.options.map((o, i) => (
-                  <li
-                    key={o}
-                    className={`slab opt ${revealed ? (i === card.answerIndex ? 'right' : 'wrong') : ''}`}
-                  >
-                    <span className="letter mono">{LETTERS[i]}</span>
-                    <span className="opt-text">{o}</span>
-                    {revealed && i === card.answerIndex && <span className="tick">✓</span>}
-                  </li>
-                ))}
+              <ol className={`options ${revealed ? 'revealed' : ''} ${solo ? 'solo' : ''}`} key={`o${index}`}>
+                {card.options.map((o, i) => {
+                  const state = revealed
+                    ? i === card.answerIndex
+                      ? 'right'
+                      : solo && i === picked
+                        ? 'chose-wrong'
+                        : 'wrong'
+                    : i === picked
+                      ? 'locked'
+                      : picked !== null
+                        ? 'dim'
+                        : ''
+                  const body = (
+                    <>
+                      <span className="letter mono">{LETTERS[i]}</span>
+                      <span className="opt-text">{o}</span>
+                      {revealed && i === card.answerIndex && <span className="tick">✓</span>}
+                      {revealed && solo && i === picked && i !== card.answerIndex && <span className="tick">✕</span>}
+                    </>
+                  )
+                  return (
+                    <li key={o} className={`slab opt ${state}`}>
+                      {solo ? (
+                        <button
+                          className="opt-btn"
+                          onClick={() => pick(i)}
+                          disabled={phase !== 'ask' || picked !== null}
+                          aria-label={`${LETTERS[i]}: ${o}`}
+                        >
+                          {body}
+                        </button>
+                      ) : (
+                        body
+                      )}
+                    </li>
+                  )
+                })}
               </ol>
             ) : revealed ? (
               <div className="slab answer-slab" key={`a${index}`}>
@@ -249,7 +319,7 @@ export function Quiz({
               <div className="timer-fill" ref={bar} />
             </div>
             <button className="mono skip" onClick={skip}>
-              {revealed ? 'Next' : 'Show'}
+              {revealed ? 'Next' : solo ? 'Skip' : 'Show'}
             </button>
           </aside>
         </div>
@@ -272,7 +342,11 @@ export function Quiz({
               <button className="slab cta tone-red" onClick={resume}>
                 Resume
               </button>
-              <button className="slab cta tone-paper" onClick={() => onDone(cards.slice(0, index + (revealed ? 1 : 0)))}>
+              <button className="slab cta tone-paper" onClick={() => {
+                  const n = index + (revealed ? 1 : 0)
+                  onDone(cards.slice(0, n), solo ? picks.current.slice(0, n) : undefined)
+                }}
+              >
                 End
               </button>
             </div>

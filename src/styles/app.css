@@ -523,6 +523,54 @@ button.slab:active,
   letter-spacing: 0.03em;
   opacity: 0.75;
 }
+/* Blitz: the 5-second option burns. Flame tips are a clip-path, the heat a
+   gradient, the flicker a slow shimmer (off under reduced motion). */
+.seg button.fire {
+  position: relative;
+  overflow: hidden;
+  color: var(--ink);
+  background: var(--surf-paper);
+  isolation: isolate;
+}
+.seg button.fire::before {
+  content: '';
+  position: absolute;
+  inset: 38% 0 0;
+  z-index: -1;
+  background: linear-gradient(0deg, var(--red) 0%, var(--orange) 55%, #ffc72c 100%);
+  clip-path: polygon(0 100%, 0 40%, 8% 10%, 16% 45%, 26% 0, 36% 42%, 46% 8%, 56% 40%, 66% 2%, 76% 44%, 86% 12%, 94% 40%, 100% 20%, 100% 100%);
+  animation: flicker 1.4s ease-in-out infinite alternate;
+  transform-origin: bottom;
+}
+.seg button.fire .flame {
+  width: 14px;
+  height: 14px;
+  color: var(--red);
+  margin-bottom: -2px;
+}
+.seg button.fire small {
+  font-weight: 600;
+  opacity: 1;
+}
+.seg button.fire[aria-pressed='true'] {
+  background: var(--ink);
+  color: #fff;
+}
+.seg button.fire[aria-pressed='true']::before {
+  inset: 0;
+  opacity: 0.95;
+}
+.seg button.fire[aria-pressed='true'] .flame {
+  color: #fff;
+}
+@keyframes flicker {
+  from {
+    transform: scaleY(0.88) skewX(-2deg);
+  }
+  to {
+    transform: scaleY(1.06) skewX(2deg);
+  }
+}
 .seg button[aria-pressed='true'] {
   background: var(--fg);
   color: var(--bg);
@@ -964,6 +1012,51 @@ button.slab.dialog:active {
   background: #fff;
   color: var(--green);
 }
+.opt-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  align-self: stretch;
+  margin: -6px -12px -6px -6px;
+  padding: 6px 12px 6px 6px;
+  text-align: left;
+  cursor: pointer;
+}
+.opt-btn:disabled {
+  cursor: default;
+}
+.options.solo .opt:not(.locked):not(.right):not(.wrong):not(.chose-wrong):not(.dim):hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--shadow);
+}
+/* Locked in: the KBC orange, pulsing while the verdict is pending. */
+.opt.locked {
+  background: var(--boards), var(--orange);
+  color: var(--ink);
+  animation: lock-pulse 450ms ease-in-out infinite alternate;
+}
+.opt.dim {
+  opacity: 0.5;
+}
+.opt.chose-wrong {
+  background: var(--boards), var(--red);
+  color: #fff;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+.opt.chose-wrong .letter {
+  background: #fff;
+  color: var(--red);
+}
+.solo-score {
+  font-weight: 700;
+}
+@keyframes lock-pulse {
+  to {
+    filter: brightness(1.12);
+  }
+}
 .opt.wrong {
   opacity: 0.32;
   text-decoration: line-through;
@@ -1114,6 +1207,19 @@ button.slab.dialog:active {
 .sheet-q {
   font-size: 15px;
   line-height: 1.3;
+}
+.answer-sheet li.got .n {
+  color: var(--green);
+  opacity: 1;
+}
+.answer-sheet li.missed .n {
+  color: var(--red);
+  opacity: 1;
+}
+.sheet-you {
+  font-weight: 500;
+  font-size: 11px;
+  color: var(--red);
 }
 .sheet-logo {
   display: inline-block;

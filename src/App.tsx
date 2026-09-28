@@ -21,6 +21,8 @@ export interface RoundSpec {
   quizStyle?: QuizStyle
   /** Questions per quiz. */
   count?: number
+  /** Quiz: one player tapping answers, KBC-style. */
+  solo?: boolean
 }
 
 /**
@@ -34,7 +36,7 @@ type View =
   | { name: 'round'; spec: RoundSpec; run: number }
   | { name: 'results'; spec: RoundSpec; answers: Answer[]; isBest: boolean }
   | { name: 'quiz'; spec: RoundSpec; cards: QuizCard[]; run: number }
-  | { name: 'quizDone'; spec: RoundSpec; asked: QuizCard[] }
+  | { name: 'quizDone'; spec: RoundSpec; asked: QuizCard[]; picks?: (number | null)[] }
 
 /** Quiz shuffle bags live next to the word bags, under their own prefix. */
 const quizSeenKey = (deckId: string) => `quiz:${deckId}`
@@ -83,8 +85,9 @@ export function App() {
           cards={view.cards}
           style={view.spec.quizStyle ?? 'mcq'}
           seconds={view.spec.seconds}
+          solo={view.spec.solo}
           onQuit={() => setView({ name: 'home' })}
-          onDone={(asked) => setView({ name: 'quizDone', spec: view.spec, asked })}
+          onDone={(asked, picks) => setView({ name: 'quizDone', spec: view.spec, asked, picks })}
         />
       )
     case 'quizDone':
@@ -92,6 +95,7 @@ export function App() {
         <QuizDone
           title={deckById(view.spec.deckId)?.title ?? ''}
           asked={view.asked}
+          picks={view.picks}
           onAgain={() => start(view.spec)}
           onHome={() => setView({ name: 'home' })}
         />

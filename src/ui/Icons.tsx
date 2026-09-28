@@ -26,3 +26,10 @@ export const ThemeIcon = () => (
     <path d="M12 4h8v16h-8z" fill="currentColor" stroke="none" />
   </svg>
 )
+
+/** A blocky flame for the 5-second "Blitz" option. */
+export const FlameIcon = () => (
+  <svg className="flame" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12 1c1 4 5 6 5 12a5 5 0 0 1-10 0c0-3 1.5-4.5 3-6 0 2.5 1 3.5 2 4 .5-3-1-6 0-10Z" fill="currentColor" />
+  </svg>
+)

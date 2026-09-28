@@ -41,7 +41,8 @@ Put the phone in the middle of the group.
 4. Everyone locks their answer before the buzzer. The app doesn't keep score; the group does.
 
 - **Two answer styles:** **A B C D** (four options, and the right one lights up green) or **Reveal** (the question alone, with the answer shown at zero).
-- **Options:** 10 / 15 / 20 / 30 seconds per question, and 10 or 20 questions per quiz.
+- **Options:** 5 / 10 / 15 / 20 seconds per question (5 seconds is **Blitz**, shown with a flame), and 10 / 15 / 20 / 25 questions per quiz.
+- **Solo (KBC-style):** one player taps an answer, and it locks in orange for a beat. Then it turns green, or red with the right answer lit. The app keeps score, and the results screen shows each question with your pick. Solo always uses four options.
 - **Controls:** Pause, or Android back, freezes the clock. **Show** and **Next** skip ahead when everyone has already locked in.
 - **Afterwards:** an answer sheet lists every question with its answer.
 - **Categories:** every deck except Actions has a quiz (you can't quiz a mime), with 180 questions each (3,720 quiz questions in total). A **Quizmaster only** section adds:
