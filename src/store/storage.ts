@@ -25,6 +25,8 @@ export interface Settings {
   quizCount: number
   /** Quiz mode: a room of people calling answers, or one player tapping (KBC-style). */
   quizPlayers: QuizPlayers
+  /** Has this device finished the setup questionnaire once? Then the sheet opens on the summary. */
+  setupSeen: boolean
 }
 
 export interface RoundRecord {
@@ -62,6 +64,7 @@ export const DEFAULT_SETTINGS: Settings = {
   quizSeconds: 15,
   quizCount: 10,
   quizPlayers: 'group',
+  setupSeen: false,
 }
 
 export function freshData(): SaveData {
@@ -80,6 +83,7 @@ export function parse(raw: string | null): SaveData {
     if (s.quizStyle !== 'mcq' && s.quizStyle !== 'reveal') s.quizStyle = 'mcq'
     if (!QUIZ_SECONDS.includes(s.quizSeconds as (typeof QUIZ_SECONDS)[number])) s.quizSeconds = 15
     if (s.quizPlayers !== 'group' && s.quizPlayers !== 'solo') s.quizPlayers = 'group'
+    s.setupSeen = s.setupSeen === true
     if (!QUIZ_COUNTS.includes(s.quizCount as (typeof QUIZ_COUNTS)[number])) s.quizCount = 10
     if (!['system', 'light', 'dark'].includes(s.theme)) s.theme = 'system'
     if (!DURATIONS.includes(s.seconds as (typeof DURATIONS)[number])) s.seconds = 60

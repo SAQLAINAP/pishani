@@ -74,6 +74,14 @@ Your feedback was that looking up felt weaker than nodding down, and that some t
 - **Times:** 5 / 10 / 15 / 20 s. 30 s was dropped as too slow. Old saves holding 30 fall back to 15.
 - **Blitz:** the 5 s box burns with a CSS flame (gradient plus a clip-path of flame tips, slowly flickering, and still under reduced motion), to say fast-paced without adding a word.
 
+### 2h. Setup as a questionnaire
+- **The problem:** the setup sheet showed every control at once (mode, time, players, style, pace, count), and on a phone that felt intimidating.
+- **One question per step:** big tappable answers, a progress bar, Back. A tap saves the choice and moves on.
+- **Skipped steps:** anything that can't vary is skipped. Actions has no quiz, quiz-only decks have no Tilt/Swipe, and Solo drops the answer-style step.
+- **Pace presets:** Quick, Standard, Marathon and Blitz replace two rows of numbers. "Custom…" keeps full control.
+- **One-tap replay:** once a device has started a round, the sheet opens on a one-line summary with START. Each part of the summary is a chip that jumps back to its own step.
+- **Runner-up:** a horizontal swipe carousel for modes. It looks slick but hides the options, and swiping conflicts with the swipe game mode.
+
 ### 3. Tilt mode starts itself
 The countdown starts once the phone has been held upright for 0.9 s. Holding it naturally in your hand tips the screen back and doesn't trigger it. You can also tap to start.
 
