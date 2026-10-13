@@ -15,6 +15,15 @@ const EXPORT_TO_DECK: Record<string, string> = {
   actorsIntl: 'actors-intl',
   singersIndian: 'singers-in',
   webSeriesTv: 'series-tv',
+  moviesHindi: 'movies-hi',
+  moviesKannada: 'movies-kn',
+  moviesTamil: 'movies-ta',
+  moviesTelugu: 'movies-te',
+  moviesMalayalam: 'movies-ml',
+  bangaloreFood: 'blr-food',
+  bangaloreAreas: 'blr-areas',
+  bangaloreLandmarks: 'blr-landmarks',
+  bangaloreMisc: 'blr-misc',
   foodsIndian: 'foods-in',
   foodsIntl: 'foods-intl',
   cities: 'cities',
@@ -50,9 +59,15 @@ for (const mod of Object.values(modules)) {
 /** Deck ids that are expected to have a quiz (Actions doesn't — you can't quiz a mime). */
 export const QUIZ_DECK_IDS = [...new Set(Object.values(EXPORT_TO_DECK))]
 
+/** Collections quiz on their own bank plus every section's (see data/index.ts). */
+const ROLLUP: Record<string, string[]> = {
+  'movies-in': ['movies-hi', 'movies-kn', 'movies-ta', 'movies-te', 'movies-ml'],
+  blr: ['blr-food', 'blr-areas', 'blr-landmarks', 'blr-misc'],
+}
+
 export function quizFor(deckId: string): QuizQuestion[] {
   if (deckId === 'mix') return Object.values(BANKS).flat()
-  return BANKS[deckId] ?? []
+  return [deckId, ...(ROLLUP[deckId] ?? [])].flatMap((id) => BANKS[id] ?? [])
 }
 
 export function hasQuiz(deckId: string): boolean {

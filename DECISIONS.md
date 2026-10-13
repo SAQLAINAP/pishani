@@ -82,6 +82,14 @@ Your feedback was that looking up felt weaker than nodding down, and that some t
 - **One-tap replay:** once a device has started a round, the sheet opens on a one-line summary with START. Each part of the summary is a chip that jumps back to its own step.
 - **Runner-up:** a horizontal swipe carousel for modes. It looks slick but hides the options, and swiping conflicts with the swipe game mode.
 
+### 2i. Collections, bigger banks, and a calmer Home (v0.6.0)
+- **Collections:** a deck can now have sections. Movies · Indian opens onto Hindi / Kannada / Tamil / Telugu / Malayalam, and the new Bangalore deck onto Restaurants / Areas / Landmarks / Misc. The parent plays as "All" (its own words plus every section's); each section has its own id, so its best score and no-repeat shuffle bag are separate. A collection is one slab on Home, so the 4-up grid never grows.
+- **Bank sizes:** most card decks and quiz banks went from ~225 / 180 to ~500. Countries cards stay as they are (every UN member). Taglines & Logos stops near 400, because slogans get obscure beyond that.
+- **No question twice:** Mix pools every bank, so a question living in two banks would repeat. Each question now lives in its most topical bank (GK and Countries lose ties), and `quiz/index.ts` rolls collections up without duplicates. `decks.test.ts` checks uniqueness inside each collection.
+- **Home is grouped into shelves:** Film & TV, Stars, Places, Food & brands, Wild cards, Quizmaster only. Wide slabs (collections, Actions) take a full row on a phone and two columns on a 4-up desktop grid, so no row ever has a hole.
+- **Breathing room:** larger gutter and card padding, quieter grid hairlines and board-form texture, a smaller deck index, and best scores shown only once there is one.
+- **Content accuracy:** the banks were written in batches and checked by script (format, length, duplicates), not fact-checked line by line. A wrong answer is a data fix in `src/data/quiz/`, not a code change.
+
 ### 3. Tilt mode starts itself
 The countdown starts once the phone has been held upright for 0.9 s. Holding it naturally in your hand tips the screen back and doesn't trigger it. You can also tap to start.
 

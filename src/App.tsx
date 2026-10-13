@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { deckById } from './data'
+import { SECTIONS, deckById } from './data'
 import { quizFor } from './data/quiz'
 import { buildQuiz, type QuizCard } from './game/quiz'
 import type { Answer } from './game/round'
@@ -37,6 +37,13 @@ type View =
   | { name: 'results'; spec: RoundSpec; answers: Answer[]; isBest: boolean }
   | { name: 'quiz'; spec: RoundSpec; cards: QuizCard[]; run: number }
   | { name: 'quizDone'; spec: RoundSpec; asked: QuizCard[]; picks?: (number | null)[] }
+
+/** Quiz header label: sections carry their tag ("Movies · Hindi"). */
+function quizTitle(deckId: string) {
+  const d = deckById(deckId)
+  if (!d) return ''
+  return SECTIONS.includes(d) ? `${d.title} · ${d.tag}` : d.title
+}
 
 /** Quiz shuffle bags live next to the word bags, under their own prefix. */
 const quizSeenKey = (deckId: string) => `quiz:${deckId}`
@@ -81,7 +88,7 @@ export function App() {
       return (
         <Quiz
           key={view.run}
-          title={deckById(view.spec.deckId)?.title ?? ''}
+          title={quizTitle(view.spec.deckId)}
           cards={view.cards}
           style={view.spec.quizStyle ?? 'mcq'}
           seconds={view.spec.seconds}
@@ -93,7 +100,7 @@ export function App() {
     case 'quizDone':
       return (
         <QuizDone
-          title={deckById(view.spec.deckId)?.title ?? ''}
+          title={quizTitle(view.spec.deckId)}
           asked={view.asked}
           picks={view.picks}
           onAgain={() => start(view.spec)}

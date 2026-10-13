@@ -1,12 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import { ART_IDS } from '../ui/DeckArt'
-import { DECKS, MIX, QUIZ_ONLY } from './index'
+import { DECKS, MIX, QUIZ_ONLY, SECTIONS } from './index'
 import { QUIZ_DECK_IDS, quizFor } from './quiz'
 
 describe('decks', () => {
-  it('has 16 decks with unique ids', () => {
-    expect(DECKS).toHaveLength(16)
-    expect(new Set([...DECKS.map((d) => d.id), MIX.id]).size).toBe(17)
+  it('has 17 decks (plus sections) with unique ids', () => {
+    expect(DECKS).toHaveLength(17)
+    const ids = [...DECKS, ...SECTIONS, ...QUIZ_ONLY, MIX].map((d) => d.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('collections roll their sections up, quiz included, without duplicate questions', () => {
+    for (const d of DECKS.filter((x) => x.sections)) {
+      for (const s of d.sections!) for (const w of s.words) expect(d.words).toContain(w)
+      const qs = quizFor(d.id).map((q) => q.q.trim().toLowerCase())
+      expect(new Set(qs).size).toBe(qs.length)
+    }
   })
 
   it('every deck (and MIX) has a pictogram', () => {
@@ -28,7 +37,7 @@ describe('decks', () => {
     }
   })
 
-  it.each(DECKS.map((d) => [d.id, d] as const))('%s is big, clean and duplicate-free', (_, d) => {
+  it.each([...DECKS, ...SECTIONS].map((d) => [d.id, d] as const))('%s is big, clean and duplicate-free', (_, d) => {
     expect(d.words.length).toBeGreaterThanOrEqual(60)
     const lower = d.words.map((w) => w.trim().toLowerCase())
     expect(new Set(lower).size).toBe(lower.length)

@@ -15,6 +15,12 @@ import { actions } from './decks/actions'
 import { sports } from './decks/sports'
 import { animals } from './decks/animals'
 import { landmarks } from './decks/landmarks'
+import { moviesHindi } from './decks/moviesHindi'
+import { moviesKannada } from './decks/moviesKannada'
+import { moviesTamil } from './decks/moviesTamil'
+import { moviesTelugu } from './decks/moviesTelugu'
+import { moviesMalayalam } from './decks/moviesMalayalam'
+import { bangaloreAreas, bangaloreFood, bangaloreLandmarks, bangaloreMisc } from './decks/bangalore'
 
 export type { Deck }
 
@@ -27,23 +33,54 @@ export type Tone = 'paper' | 'concrete' | 'stone' | 'ink'
 
 export interface PlayableDeck extends Deck {
   tone: Tone
+  /**
+   * A collection: one slab on Home that opens onto a section picker. The
+   * parent itself plays as "All" (its words are its own plus every
+   * section's), and each section is a full deck with its own id, best score
+   * and shuffle bag.
+   */
+  sections?: PlayableDeck[]
 }
 
+/** Parent deck whose words are the union of its own and its sections'. */
+function collection(parent: Deck, sections: Deck[], tone: Tone = 'paper'): Deck & { sections: PlayableDeck[] } {
+  return {
+    ...parent,
+    words: [...new Set([...parent.words, ...sections.flatMap((s) => s.words)])],
+    sections: sections.map((s) => ({ ...s, tone })),
+  }
+}
+
+const moviesIndianAll = collection(moviesIndian, [moviesHindi, moviesKannada, moviesTamil, moviesTelugu, moviesMalayalam])
+
+const bangalore = collection(
+  {
+    id: 'blr',
+    title: 'Bangalore',
+    tag: 'Namma Bengaluru',
+    blurb: 'Dosas, layouts, landmarks and traffic. Only for locals (and survivors).',
+    words: [],
+  },
+  [bangaloreFood, bangaloreAreas, bangaloreLandmarks, bangaloreMisc],
+)
+
+// Same order as the shelves on Home, so index numbers and the tone rhythm run in sequence.
 const ORDER: Deck[] = [
-  moviesIndian,
+  moviesIndianAll,
   moviesIntl,
+  webSeriesTv,
   actorsIndian,
   actorsIntl,
   singersIndian,
-  webSeriesTv,
-  foodsIndian,
-  foodsIntl,
+  sports,
+  bangalore,
   cities,
   countries,
-  landmarks,
+  foodsIndian,
+  foodsIntl,
   brandsIndian,
   brandsIntl,
-  sports,
+  landmarks,
   animals,
   actions,
 ]
@@ -125,7 +162,15 @@ export const QUIZ_ONLY: PlayableDeck[] = [
   }),
 ]
 
+/** Every section of every collection, flattened. */
+export const SECTIONS: PlayableDeck[] = DECKS.flatMap((d) => d.sections ?? [])
+
 export function deckById(id: string): PlayableDeck | undefined {
   if (id === MIX_ID) return MIX
-  return DECKS.find((d) => d.id === id) ?? QUIZ_ONLY.find((d) => d.id === id)
+  return DECKS.find((d) => d.id === id) ?? SECTIONS.find((d) => d.id === id) ?? QUIZ_ONLY.find((d) => d.id === id)
+}
+
+/** The collection a section belongs to (or the deck itself). */
+export function parentOf(id: string): PlayableDeck | undefined {
+  return DECKS.find((d) => d.id === id || d.sections?.some((s) => s.id === id))
 }

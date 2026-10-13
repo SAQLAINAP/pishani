@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { RoundSpec } from '../App'
-import type { PlayableDeck } from '../data'
+import { deckById, type PlayableDeck } from '../data'
 import { hasQuiz } from '../data/quiz'
 import { useBack } from '../lib/back'
 import { canTilt, isTouch, requestMotion } from '../lib/platform'
@@ -14,11 +14,13 @@ import { CloseIcon, FlameIcon } from '../ui/Icons'
  * - One decision per step, big tappable answers; a tap saves and moves on.
  * - Steps that can't vary are skipped (Actions has no quiz; quiz-only decks
  *   have no Tilt/Swipe; Group-only "answer style" disappears for Solo).
+ * - Collections (Movies · Indian, Bangalore) open on a section picker
+ *   every time — choosing the section is why you opened them.
  * - Once a device has been through it, the sheet opens on the last step — a
  *   one-line summary with START — so a repeat game is a single tap, and each
  *   part of the summary is a chip that jumps back to its own step.
  */
-type Step = 'mode' | 'time' | 'players' | 'style' | 'pace' | 'go'
+type Step = 'section' | 'mode' | 'time' | 'players' | 'style' | 'pace' | 'go'
 
 interface Pace {
   id: string
@@ -53,8 +55,13 @@ export function SetupSheet({
 }) {
   const { settings, best } = useSave()
 
-  const wordsOK = !deck.quizOnly
-  const quizOK = hasQuiz(deck.id)
+  // For a collection, the parent plays as "All" and each section as itself.
+  const sectionChoices = deck.sections ? [deck, ...deck.sections] : null
+  const [sectionId, setSectionId] = useState(deck.id)
+  const active = (sectionChoices && deckById(sectionId)) || deck
+
+  const wordsOK = !active.quizOnly
+  const quizOK = hasQuiz(active.id)
   // Resolve the saved mode against what this deck and device allow, without
   // overwriting the saved preference for other decks.
   let mode: Mode = settings.mode
@@ -70,13 +77,15 @@ export function SetupSheet({
     ...(quizOK ? (['quiz'] as const) : []),
   ]
 
-  const steps: Step[] = [
+  const pathFor = (quiz: boolean, isSolo: boolean): Step[] => [
+    ...(sectionChoices ? (['section'] as const) : []),
     ...(modeChoices.length > 1 ? (['mode'] as const) : []),
-    ...(isQuiz ? (['players', ...(solo ? [] : (['style'] as const)), 'pace'] as const) : (['time'] as const)),
+    ...(quiz ? (['players', ...(isSolo ? [] : (['style'] as const)), 'pace'] as const) : (['time'] as const)),
     'go',
   ]
+  const steps = pathFor(isQuiz, solo)
 
-  const [step, setStep] = useState<Step>(() => (settings.setupSeen ? 'go' : steps[0]))
+  const [step, setStep] = useState<Step>(() => (sectionChoices ? 'section' : settings.setupSeen ? 'go' : steps[0]))
   const [dir, setDir] = useState<'fwd' | 'back'>('fwd')
   const [custom, setCustom] = useState(false)
   const at = Math.max(0, steps.indexOf(step))
@@ -90,13 +99,13 @@ export function SetupSheet({
   function choose(patch: Partial<Settings>, from: Step) {
     store.updateSettings(patch)
     const s = { ...store.get().settings }
-    const q = (patch.mode ?? mode) === 'quiz'
-    const path: Step[] = [
-      ...(modeChoices.length > 1 ? (['mode'] as const) : []),
-      ...(q ? (['players', ...(s.quizPlayers === 'solo' ? [] : (['style'] as const)), 'pace'] as const) : (['time'] as const)),
-      'go',
-    ]
+    const path = pathFor((patch.mode ?? mode) === 'quiz', s.quizPlayers === 'solo')
     go(path[path.indexOf(from) + 1] ?? 'go')
+  }
+  function pickSection(id: string) {
+    setSectionId(id)
+    // Returning players go straight to START; first-timers continue the questionnaire.
+    go(settings.setupSeen ? 'go' : (steps[steps.indexOf('section') + 1] ?? 'go'))
   }
   function back() {
     if (at === 0 || step === steps[0]) return onClose()
@@ -118,7 +127,7 @@ export function SetupSheet({
     onStart(
       isQuiz
         ? {
-            deckId: deck.id,
+            deckId: active.id,
             mode,
             seconds: settings.quizSeconds,
             // Solo is always four options — there's nothing to tap in reveal-only.
@@ -126,7 +135,7 @@ export function SetupSheet({
             count: settings.quizCount,
             solo,
           }
-        : { deckId: deck.id, mode, seconds: settings.seconds },
+        : { deckId: active.id, mode, seconds: settings.seconds },
     )
   }
 
@@ -147,8 +156,8 @@ export function SetupSheet({
         <div className="sheet-head">
           <div className="sheet-id">
             <span className="mono">
-              Deck {label} · {deck.tag}
-              {!isQuiz && best[deck.id] !== undefined && ` · Best ${best[deck.id]}`}
+              Deck {label} · {active === deck ? deck.tag : active.tag}
+              {!isQuiz && best[active.id] !== undefined && ` · Best ${best[active.id]}`}
             </span>
             <h2 className="sheet-title compact">{deck.title}</h2>
           </div>
@@ -166,6 +175,24 @@ export function SetupSheet({
         )}
 
         <div className={`step step-${dir}`} key={step}>
+          {step === 'section' && sectionChoices && (
+            <>
+              <h3 className="step-q">Which one?</h3>
+              <div className="choices">
+                {sectionChoices.map((d, i) => (
+                  <Choice
+                    key={d.id}
+                    index={i}
+                    title={d === deck ? 'All' : d.tag}
+                    note={d === deck ? `All ${deck.sections!.length} sections, shuffled together.` : d.blurb}
+                    on={active.id === d.id}
+                    onClick={() => pickSection(d.id)}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+
           {step === 'mode' && (
             <>
               <h3 className="step-q">How are you playing?</h3>
@@ -312,8 +339,13 @@ export function SetupSheet({
 
           {step === 'go' && (
             <>
-              <p className="blurb">{deck.blurb}</p>
+              <p className="blurb">{active.blurb}</p>
               <div className="summary" aria-label="Your setup">
+                {sectionChoices && (
+                  <button className="chip" onClick={() => go('section', 'back')}>
+                    {active === deck ? 'All' : active.tag}
+                  </button>
+                )}
                 {modeChoices.length > 1 && (
                   <button className="chip" onClick={() => go('mode', 'back')}>
                     {MODE_INFO[mode].title}
@@ -381,7 +413,7 @@ function Choice({
 }) {
   return (
     <button className={`slab choice ${on ? 'on' : ''}`} onClick={onClick} aria-pressed={on}>
-      <span className="choice-key mono">{'ABC'[index]}</span>
+      <span className="choice-key mono">{'ABCDEFGH'[index]}</span>
       <span className="choice-body">
         <b>{title}</b>
         <span>{note}</span>

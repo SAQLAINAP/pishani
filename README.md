@@ -45,7 +45,7 @@ Put the phone in the middle of the group.
 - **Solo (KBC-style):** one player taps an answer, and it locks in orange for a beat. Then it turns green, or red with the right answer lit. The app keeps score, and the results screen shows each question with your pick. Solo always uses four options.
 - **Controls:** Pause, or Android back, freezes the clock. **Show** and **Next** skip ahead when everyone has already locked in.
 - **Afterwards:** an answer sheet lists every question with its answer.
-- **Categories:** every deck except Actions has a quiz (you can't quiz a mime), with 180 questions each (3,720 quiz questions in total). A **Quizmaster only** section adds:
+- **Categories:** every deck except Actions has a quiz (you can't quiz a mime), with roughly 500 questions each, apart from Taglines & Logos (about 400). A **Quizmaster only** section adds:
   - **General Knowledge**
   - **Taglines & Logos:** slogans, film dialogues, catchphrases, and simplified logo sketches drawn in-app. No trademarked artwork is bundled.
   - Four **BETA** categories: Tech & Software, Medic & Health, Finance & Econ, History & Geopolitics.
@@ -56,16 +56,17 @@ In tilt mode the countdown starts by itself once the phone is held upright on a 
 
 | | |
 |---|---|
-| Movies · Indian | Movies · International |
+| Movies · Indian (Hindi, Kannada, Tamil, Telugu, Malayalam) | Movies · International |
 | Actors · Indian | Actors · International |
 | Singers · Indian | Web Series & TV · Desi + Global |
 | Food · Indian | Food · International |
 | Brands · Indian | Brands · International |
 | Cities · World | Countries · World |
 | Landmarks · Famous Places | Sports Stars · Cricket + Global |
+| Bangalore (Restaurants, Areas, Landmarks, Misc) | |
 | Animals · Wild + Home | Actions · Act It Out |
 
-Each deck has a couple of hundred cards, most popular first. Countries is the exception: it has every UN member state plus Vatican City.
+Most decks have around 500 cards, most popular first. Movies · Indian and Bangalore are collections: tap one and choose a section, or play **All** of them shuffled together. Countries is the exception: it has every UN member state plus Vatican City.
 
 **MIX** shuffles every deck into one pile. Each deck uses a shuffle bag, so you won't see a word again until you've gone through the whole deck, even across rounds.
 

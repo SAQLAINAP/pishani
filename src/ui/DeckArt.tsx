@@ -174,6 +174,25 @@ const ART: Record<string, () => React.JSX.Element> = {
     </>
   ),
 
+  // Vidhana Soudha: domed centre, pediment over a colonnade, domed wings.
+  blr: () => (
+    <>
+      <rect x="4" y="44" width="112" height="28" {...T} />
+      <Cut d={rect(30, 40, 60, 32) + Array.from({ length: 6 }, (_, i) => rect(34 + i * 9, 48, 5, 24)).join('')} />
+      <polygon points="26,40 60,27 94,40" fill={F} />
+      <circle cx="60" cy="35" r="3" fill={A} />
+      <rect x="49" y="17" width="22" height="10" fill={F} />
+      <path d="M49 17a11 11 0 0 1 22 0Z" fill={F} />
+      <rect x="59" y="0" width="2" height="7" fill={A} />
+      {[14, 106].map((cx) => (
+        <g key={cx}>
+          <rect x={cx - 7} y="34" width="14" height="38" fill={F} />
+          <path d={`M${cx - 7} 34a7 7 0 0 1 14 0Z`} fill={F} />
+        </g>
+      ))}
+    </>
+  ),
+
   // Price tag with a barcode.
   'brands-in': () => (
     <>
